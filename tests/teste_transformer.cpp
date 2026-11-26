@@ -62,14 +62,15 @@ void testar_gradient_check_transformer() {
     vibes::ModeloTransformer modelo(cfg, rng);
 
     const std::vector<vibes::SequenciaTreino> batch = {
-        {{0, 1, 2, 1, 3}, {1, 2, 1, 3, 4}},
-        {{2, 3, 4, 0, 2}, {3, 4, 0, 2, 1}},
+        {{0, 1, 2, 1, 3}, {1, 2, 1, 3, 4}, {}},
+        {{2, 3, 4, 0, 2}, {3, 4, 0, 2, 1}, {0.0f, 0.0f, 1.0f, 1.0f, 1.0f}},  // mascara SFT!
     };
 
     const float erro = vibes::verificar_gradiente_numerico_gpt(modelo, batch, 8, 1e-5);
-    std::cout << "  -> Maior erro relativo no Gradient Check (GPT): " << erro << "\n";
+    std::cout << "  -> Maior erro relativo no Gradient Check (GPT + Weight Tying + SFT): " << erro
+              << "\n";
     verificar(erro < 5e-4f,
-              "Gradient checking numerico do Mini-Transformer (Attention + LN + FFN) < 5e-4");
+              "Gradient checking numerico do Mini-Transformer (Attention + LN + Weight Tying + SFT) < 5e-4");
 }
 
 void testar_convergencia_adamw_e_checkpoint() {
@@ -123,6 +124,18 @@ void testar_convergencia_adamw_e_checkpoint() {
     const float perda_carregado = carregado.avaliar(batch);
     verificar(std::abs(perda_carregado - perda_final) < 1e-6f,
               "Checkpoint GPT salvo e recarregado preserva perda identica");
+    verificar(carregado.passo_otimizador() == 80,
+              "Checkpoint GPT preserva passo e estado do otimizador AdamW");
+
+    // Validar Dropout no modo treino e metrica de confianca na geracao
+    const float perda_drop = carregado.calcular_perda_e_gradiente(batch, grad, true, 1234u);
+    verificar(std::isfinite(perda_drop) && perda_drop >= 0.0f,
+              "Dropout no treino produz perda e gradientes finitos");
+
+    const auto gen = carregado.gerar_com_confianca({0, 1, 2}, 10, 0.3f, 4, rng, -1);
+    verificar(gen.ids.size() == 10 && gen.confianca_media > 0.0f && gen.confianca_media <= 1.0f &&
+                  gen.perplexidade >= 1.0f,
+              "gerar_com_confianca retorna confianca media em (0, 1] e perplexidade >= 1");
 }
 
 }  // namespace

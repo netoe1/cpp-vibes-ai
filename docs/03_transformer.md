@@ -57,19 +57,32 @@ Empilhar blocos Transformer exige três ingredientes implementados em [transform
 
 ---
 
-## 4. Como Executar e Experimentar
+## 4. Melhorias Modernas Implementadas (BPE, SFT, Weight Tying e Retomada)
+
+Além da base do GPT, a Etapa 3 inclui quatro técnicas usadas em LLMs reais:
+
+1. **Byte-Level BPE (`--bpe 512`)** em [bpe.hpp](../src/comum/bpe.hpp): funde pares de bytes frequentes em subpalavras/palavras inteiras do português, multiplicando por ~3x–5x o alcance real da janela de contexto sem tokens desconhecidos.
+2. **Supervised Fine-Tuning / SFT (`--sft`)**: aplica máscara de loss (`0.0` nos tokens do `Usuario:`, `1.0` nos tokens da resposta após `IA: `), concentrando os gradientes exclusivamente em gerar boas respostas.
+3. **Weight Tying**: compartilha a matriz de embeddings `w_tok` com a projeção de saída (*LM Head*), economizando $V \times D$ parâmetros e melhorando a generalização.
+4. **Retomada de Treino (`--continuar`)**: o checkpoint `.vibes` (`VBGPT02`) salva pesos + estado completo do otimizador AdamW (`m`, `v` e `passo`), permitindo treinar em sessões incrementais sem perder o momento da otimização.
+
+---
+
+## 5. Como Executar e Experimentar
 
 ```bash
-# Treinar, verificar gradientes e salvar checkpoint
-./build/etapa3_transformer dados/dialogos.txt --verificar-gradiente --salvar modelo_gpt.vibes
+# Modo clássico (caractere UTF-8)
+./build/etapa3_transformer dados/dialogos.txt --verificar-gradiente --salvar build/modelo_gpt.vibes
 
-# Conversar diretamente usando o checkpoint salvo
-./build/etapa3_transformer dados/dialogos.txt --carregar modelo_gpt.vibes
+# Modo evoluído (BPE + SFT + modelo maior + retomada via Makefile)
+make treinar-gpt-bpe PASSOS=800
+make continuar-gpt-bpe PASSOS=800
+make chat-gpt-bpe
 ```
 
 No modo chat, a conversa mantém o **histórico** na janela de contexto e oferece comandos úteis:
 - `/temp 0.6` — ajusta a temperatura da amostragem.
-- `/topk 10` — limita o sorteio aos 10 caracteres mais prováveis (`/topk 0` desativa).
+- `/topk 10` — limita o sorteio aos 10 tokens mais prováveis (`/topk 0` desativa).
 - `/limpar` — limpa o histórico da conversa.
-- `/salvar modelo_gpt.vibes` — salva os pesos atuais em disco.
+- `/salvar modelo_gpt.vibes` — salva os pesos atuais (e `.bpe` se aplicável) em disco.
 - `/sair` — encerra o chat.

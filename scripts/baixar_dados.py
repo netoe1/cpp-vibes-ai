@@ -53,8 +53,14 @@ def baixar_bytes(url: str, descricao: str) -> bytes:
 
 
 def limpar_linha(texto: str) -> str:
-    # Mantem cada turno em uma unica linha limpa para o formato Usuario:/IA:
+    # Normaliza pontuacao tipografica, remove ruido e mantem cada turno em 1 linha limpa
     texto = texto.replace("\r\n", "\n").replace("\r", "\n")
+    substituicoes = {
+        "\u201c": '"', "\u201d": '"', "\u2018": "'", "\u2019": "'",
+        "\u2013": "-", "\u2014": "-", "\u2026": "...", "\u00a0": " ",
+    }
+    for orig, novo in substituicoes.items():
+        texto = texto.replace(orig, novo)
     texto = re.sub(r"\s+", " ", texto).strip()
     return texto
 
@@ -221,6 +227,43 @@ def main() -> int:
                 out.write(p.read_text(encoding="utf-8").strip() + "\n\n")
         mb = combinado.stat().st_size / (1024.0 * 1024.0)
         print(f"[Combinado] Criado {combinado} ({mb:.2f} MB de conversas em portugues!)")
+
+    # Cria um corpus calibrado para CPU (~200-300 KB): combina os datasets locais +
+    # os dialogos mais curtos e limpos de OASST1 e Alpaca-PT (sem blocos de codigo)
+    corpus_cpu = PASTA_SAIDA / "conversas_cpu.txt"
+    locais = [
+        Path("dados/dialogos.txt"),
+        Path("dados/conversa_cotidiana.txt"),
+        Path("dados/programacao_cpp.txt"),
+        Path("dados/machine_learning.txt"),
+    ]
+    externos_filtrados = []
+    for fonte in (PASTA_SAIDA / "oasst1_pt.txt", PASTA_SAIDA / "alpaca_pt.txt"):
+        if not fonte.exists():
+            continue
+        blocos = fonte.read_text(encoding="utf-8").strip().split("\n\n")
+        for bloco in blocos:
+            linhas = [l.strip() for l in bloco.splitlines() if l.strip()]
+            if len(linhas) != 2:
+                continue
+            u, ia = linhas
+            if not (u.startswith("Usuario: ") and ia.startswith("IA: ")):
+                continue
+            if "```" in bloco or "http://" in bloco or "https://" in bloco:
+                continue
+            if 12 <= len(u) <= 130 and 15 <= len(ia) <= 240:
+                externos_filtrados.append(f"{u}\n{ia}")
+            if len(externos_filtrados) >= 1200:
+                break
+
+    with corpus_cpu.open("w", encoding="utf-8") as out:
+        for p in locais:
+            if p.exists():
+                out.write(p.read_text(encoding="utf-8").strip() + "\n\n")
+        for bloco in externos_filtrados:
+            out.write(bloco + "\n\n")
+    kb = corpus_cpu.stat().st_size / 1024.0
+    print(f"[CPU] Criado {corpus_cpu} ({len(externos_filtrados)} dialogos externos limpos + locais, {kb:.1f} KB)")
 
     return 0 if (existentes and erros < len(tarefas)) else 1
 

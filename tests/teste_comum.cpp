@@ -1,8 +1,10 @@
 #include "comum/aleatorio.hpp"
+#include "comum/bpe.hpp"
 #include "comum/matriz.hpp"
 #include "comum/tokenizador.hpp"
 
 #include <cmath>
+#include <cstdio>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -107,6 +109,36 @@ void testar_aleatorio_deterministico() {
     verificar(sempre_max, "amostrar_top_k com k=1 seleciona sempre o token mais provavel");
 }
 
+void testar_tokenizador_bpe() {
+    const std::string corpus =
+        "Usuario: olá, como funciona um transformer?\n"
+        "IA: um transformer usa atenção para entender o contexto da frase.\n"
+        "Usuario: o que é atenção no transformer?\n"
+        "IA: atenção conecta tokens distantes no transformer!\n";
+
+    vibes::TokenizadorBPE bpe;
+    bpe.treinar(corpus, 300);
+
+    verificar(bpe.tamanho_vocabulario() > 256 && bpe.tamanho_vocabulario() <= 300,
+              "BPE aprendeu fusoes de subpalavras (vocab > 256)");
+
+    const auto ids = bpe.codificar(corpus);
+    verificar(ids.size() < corpus.size(),
+              "BPE comprime o texto em menos tokens do que o total de bytes");
+    verificar(bpe.decodificar(ids) == corpus,
+              "BPE codifica e decodifica texto UTF-8 com acentos sem nenhuma perda");
+
+    // Testar salvar e carregar regras BPE
+    const std::string caminho_tmp = "/tmp/teste_cpp_vibes.bpe";
+    bpe.salvar(caminho_tmp);
+    vibes::TokenizadorBPE bpe2;
+    bpe2.carregar(caminho_tmp);
+    std::remove(caminho_tmp.c_str());
+
+    verificar(bpe2.codificar(corpus) == ids,
+              "Tokenizador BPE salvo e recarregado produz exatamente os mesmos IDs");
+}
+
 }  // namespace
 
 int main() {
@@ -114,6 +146,7 @@ int main() {
     testar_softmax_estabilidade();
     testar_multiplicacao_matrizes();
     testar_aleatorio_deterministico();
+    testar_tokenizador_bpe();
 
     if (falhas > 0) {
         std::cerr << "\nTotal de falhas: " << falhas << "\n";

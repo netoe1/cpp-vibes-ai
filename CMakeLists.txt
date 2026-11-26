@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(cpp_vibes_ai
-    VERSION 0.3.0
-    DESCRIPTION "IA conversacional educativa construida do zero em C++"
+    VERSION 0.4.0
+    DESCRIPTION "IA conversacional educativa (Mini-Transformer GPT) construida do zero em C++"
     LANGUAGES CXX
 )
 
@@ -12,15 +12,15 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Exporta compile_commands.json para facilitar autocomplete em IDEs/editores
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# OpenMP para paralelismo simples em CPU
+# OpenMP para paralelismo em CPU
 find_package(OpenMP)
 
-# Opcoes de compilacao: avisos estritos e otimizacao em Release
+# Opcoes de compilacao: avisos estritos + otimizacao nativa em Release
 add_library(config_projeto INTERFACE)
 target_include_directories(config_projeto INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_compile_options(config_projeto INTERFACE
     $<$<CXX_COMPILER_ID:GNU,Clang>:-Wall -Wextra -Wpedantic>
-    $<$<CONFIG:Release>:-O3>
+    $<$<CONFIG:Release>:-O3 -march=native>
 )
 
 if(OpenMP_CXX_FOUND)
@@ -32,23 +32,8 @@ else()
 endif()
 
 # -----------------------------------------------------------------------------
-# Etapa 1: Modelo Bigram (Estatistico vs Neural com Gradiente Descendente)
-# -----------------------------------------------------------------------------
-add_executable(etapa1_bigram
-    src/etapa1_bigram/main.cpp
-)
-target_link_libraries(etapa1_bigram PRIVATE config_projeto)
-
-# -----------------------------------------------------------------------------
-# Etapa 2: Modelo MLP (Embeddings + Janela de Contexto + Backprop Manual)
-# -----------------------------------------------------------------------------
-add_executable(etapa2_mlp
-    src/etapa2_mlp/main.cpp
-)
-target_link_libraries(etapa2_mlp PRIVATE config_projeto)
-
-# -----------------------------------------------------------------------------
-# Etapa 3: Mini-Transformer Conversacional (Causal Self-Attention + AdamW)
+# Modelo Atual: Mini-Transformer Conversacional (GPT + BPE + SFT + Weight Tying)
+# (As etapas educativas anteriores estao preservadas em backup/)
 # -----------------------------------------------------------------------------
 add_executable(etapa3_transformer
     src/etapa3_transformer/main.cpp
@@ -64,25 +49,16 @@ add_executable(teste_comum tests/teste_comum.cpp)
 target_link_libraries(teste_comum PRIVATE config_projeto)
 add_test(NAME unitario_comum COMMAND teste_comum)
 
-add_executable(teste_mlp tests/teste_mlp.cpp)
-target_link_libraries(teste_mlp PRIVATE config_projeto)
-add_test(NAME unitario_e_gradcheck_mlp COMMAND teste_mlp)
-
 add_executable(teste_transformer tests/teste_transformer.cpp)
 target_link_libraries(teste_transformer PRIVATE config_projeto)
 add_test(NAME unitario_e_gradcheck_transformer COMMAND teste_transformer)
 
 add_test(
-    NAME regressao_etapa1_bigram
-    COMMAND etapa1_bigram ${CMAKE_CURRENT_SOURCE_DIR}/dados/dialogos.txt --sem-chat
+    NAME integracao_transformer_utf8
+    COMMAND etapa3_transformer ${CMAKE_CURRENT_SOURCE_DIR}/dados/dialogos.txt --sem-chat --verificar-gradiente --passos 40
 )
 
 add_test(
-    NAME regressao_etapa2_mlp
-    COMMAND etapa2_mlp ${CMAKE_CURRENT_SOURCE_DIR}/dados/dialogos.txt --sem-chat --verificar-gradiente --epocas 40
-)
-
-add_test(
-    NAME integracao_etapa3_transformer
-    COMMAND etapa3_transformer ${CMAKE_CURRENT_SOURCE_DIR}/dados/dialogos.txt --sem-chat --verificar-gradiente --passos 60
+    NAME integracao_transformer_bpe_sft
+    COMMAND etapa3_transformer ${CMAKE_CURRENT_SOURCE_DIR}/dados/dialogos.txt --sem-chat --bpe 300 --sft --passos 30
 )

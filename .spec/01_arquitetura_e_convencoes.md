@@ -24,16 +24,14 @@ cpp-vibes-ai/
 │   ├── 02_mlp.md              # (a criar na Etapa 2)
 │   └── 03_transformer.md      # (a criar na Etapa 3)
 └── src/
-    ├── comum/                 # Headers reutilizáveis entre todas as etapas
-    │   ├── aleatorio.hpp      # PRNG determinístico e amostragem categórica
-    │   ├── matriz.hpp         # Matriz 2D contígua (row-major) + softmax + matmul OpenMP
-    │   └── tokenizador.hpp    # Tokenizador UTF-8 por caractere
-    ├── etapa1_bigram/         # Executável: etapa1_bigram
-    ├── etapa2_mlp/            # Executável: etapa2_mlp
-    └── etapa3_transformer/    # Executável: etapa3_transformer
-└── tests/                     # Testes unitários, gradient checking e regressão (CTest)
+    ├── comum/                 # Headers reutilizáveis (BPE, UTF-8, Matriz, Aleatório)
+    └── etapa3_transformer/    # Executável ativo: etapa3_transformer (GPT + BPE + SFT)
+└── backup/                    # Etapas educativas anteriores preservadas como referência
+    ├── src/etapa1_bigram/
+    ├── src/etapa2_mlp/
+    └── tests/teste_mlp.cpp
+└── tests/                     # Testes unitários, gradient checking e integração (CTest)
     ├── teste_comum.cpp
-    ├── teste_mlp.cpp
     └── teste_transformer.cpp
 ```
 

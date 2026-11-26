@@ -23,6 +23,9 @@
 - [x] Expansão de datasets em `dados/` (`conversa_cotidiana.txt`, `programacao_cpp.txt`, `machine_learning.txt` e geração automática de `completo.txt` via `make dados-completo`)
 - [x] Script `scripts/baixar_dados.py` + `make baixar-dados` para baixar e formatar grandes datasets abertos em português (`OpenAssistant/oasst1`, `FreedomIntelligence/alpaca-gpt4-portuguese`, *Dom Casmurro* — Gutenberg #55752) em `dados/externos/`
 - [x] Suíte de treinos no `Makefile` (`suite-treino-rapida`, `suite-treino`, `suite-treino-grande`, `suite-benchmark`)
+- [x] Evolução do Mini-Transformer: Tokenizador **Byte-Level BPE** (`src/comum/bpe.hpp`), **SFT** com máscara de loss (`--sft`), **Weight Tying**, checkpoint `VBGPT02` com estado AdamW (`--continuar`), CLI configurável (`--dim`, `--camadas`, `--contexto`, `--bpe`) e vetorização `-march=native`
+- [x] Arquivamento das etapas anteriores (`etapa1_bigram`, `etapa2_mlp`, `teste_mlp.cpp`) em `backup/`, deixando apenas o Mini-Transformer atual ativo no `CMakeLists.txt` e `Makefile`
+- [x] Regularização e experiência de chat: **Inverted Dropout** (`--dropout`), salvamento automático do melhor checkpoint de validação (`--melhor-val`) + Early Stopping (`--paciencia`), medidor de confiança + fallback honesto (`/conf`) e corpus calibrado para CPU (`dados/externos/conversas_cpu.txt`, `make treinar-cpu` / `make chat-cpu`)
 
 ## 2. Registro de Decisões Arquiteturais (ADRs)
 
@@ -49,3 +52,7 @@
 ### ADR-006 — Precisão Dupla (`double`) nas Diferenças Finitas do Gradient Checking
 - **Decisão**: Avaliar a função de perda em `double` (`eps = 1e-5`) durante `verificar_gradiente_numerico`, mantendo o treino principal em `float32`.
 - **Motivo**: Em `float32`, a subtração `(L(θ+ε) - L(θ-ε)) / (2ε)` sofre erro de cancelamento numérico (~`1e-2`), mascarando a precisão real do backpropagation. Com avaliação em `double`, o erro relativo cai para `~1e-6`, garantindo detecção rigorosa de qualquer erro de gradiente.
+
+### ADR-007 — Arquivamento das Etapas 1 e 2 em `backup/`
+- **Decisão**: Mover `etapa1_bigram`, `etapa2_mlp` e `teste_mlp.cpp` para `backup/` e manter apenas a versão mais atual (`etapa3_transformer` com BPE + SFT + Weight Tying) ativa no `CMakeLists.txt` e `Makefile`.
+- **Motivo**: Simplificar o fluxo diário de treino, testes e chat na versão mais capaz, preservando intacto o histórico educativo no diretório `backup/` e em `docs/`.

@@ -1,74 +1,95 @@
 # =============================================================================
-# cpp-vibes-ai — Makefile para compilar, testar e conversar com os modelos
+# cpp-vibes-ai — Makefile (Mini-Transformer GPT + BPE + SFT)
 # =============================================================================
 # Uso basico:
-#   make help          -> Mostra todos os comandos disponiveis
-#   make build         -> Compila todos os modelos e testes (Release + OpenMP)
-#   make test          -> Executa toda a suite de testes e regressao (CTest)
-#   make etapa1        -> Roda o chat da Etapa 1 (Bigram)
-#   make etapa2        -> Roda o chat da Etapa 2 (MLP)
-#   make etapa3        -> Roda o chat da Etapa 3 (Mini-Transformer / GPT)
-#   make chat-gpt      -> Treina (se necessario) e abre chat rapido com checkpoint
-#   make clean         -> Remove arquivos compilados (build/)
-#
-# Voce pode sobrescrever variaveis na linha de comando, por exemplo:
-#   make treinar-gpt PASSOS=1000
-#   make etapa3 DADOS=dados/dialogos.txt
+#   make help              -> Mostra todos os comandos disponiveis
+#   make build             -> Compila o Mini-Transformer e os testes (Release)
+#   make test              -> Roda toda a suite de testes e regressao (CTest)
+#   make treinar           -> Treina no corpus curado (dados/completo.txt)
+#   make continuar         -> Retoma treino do checkpoint preservando AdamW
+#   make chat              -> Abre o chat com o modelo treinado
+#   make baixar-dados      -> Baixa grandes datasets PT (OASST1 + Alpaca-PT)
+#   make treinar-grande    -> Treina no corpus grande (4,5 MB)
+#   make continuar-grande  -> Retoma treino no corpus grande
+#   make chat-grande       -> Abre o chat com o modelo do corpus grande
+#   make clean             -> Remove build/
 # =============================================================================
 
-BUILD_DIR   ?= build
-TIPO        ?= Release
-DADOS       ?= dados/dialogos.txt
-EPOCAS      ?= 80
-PASSOS      ?= 600
-CKPT_MLP          ?= $(BUILD_DIR)/modelo_mlp.vibes
-CKPT_MLP_COMPLETO ?= $(BUILD_DIR)/modelo_mlp_completo.vibes
-CKPT_GPT          ?= $(BUILD_DIR)/modelo_gpt.vibes
-CKPT_GPT_COMPLETO ?= $(BUILD_DIR)/modelo_gpt_completo.vibes
-CKPT_GPT_GRANDE   ?= $(BUILD_DIR)/modelo_gpt_grande.vibes
+BUILD_DIR    ?= build
+TIPO         ?= Release
+BIN          := $(BUILD_DIR)/etapa3_transformer
+
+# Hiperparametros padrao para treino rapido e coerente em dados/completo.txt
+DADOS        ?= dados/completo.txt
+VOCAB_BPE    ?= 512
+DIM          ?= 96
+CAMADAS      ?= 3
+CABECAS      ?= 4
+CONTEXTO     ?= 64
+BATCH        ?= 16
+LR           ?= 0.005
+PASSOS       ?= 600
+CKPT         ?= $(BUILD_DIR)/modelo.vibes
+
+# Hiperparametros padrao para o corpus otimizado para CPU (~250 KB, ~1300 dialogos limpos)
+DADOS_CPU       ?= dados/externos/conversas_cpu.txt
+VOCAB_CPU       ?= 512
+DIM_CPU         ?= 96
+CAMADAS_CPU     ?= 3
+CONTEXTO_CPU    ?= 64
+PASSOS_CPU      ?= 1200
+LR_CPU          ?= 0.004
+CKPT_CPU        ?= $(BUILD_DIR)/modelo_cpu.vibes
+
+# Hiperparametros padrao para o corpus grande (dados/externos/conversas_grande.txt)
+VOCAB_GRANDE    ?= 512
+DIM_GRANDE      ?= 96
+CAMADAS_GRANDE  ?= 3
+CONTEXTO_GRANDE ?= 96
+PASSOS_GRANDE   ?= 800
+LR_GRANDE       ?= 0.003
+CKPT_GRANDE     ?= $(BUILD_DIR)/modelo_gpt_bpe.vibes
+
 DADOS_FONTES := dados/dialogos.txt dados/conversa_cotidiana.txt dados/programacao_cpp.txt dados/machine_learning.txt
 
 .DEFAULT_GOAL := help
 
 .PHONY: help configurar build test clean \
-        etapa1 etapa2 etapa3 \
-        treinar-mlp chat-mlp \
-        treinar-gpt chat-gpt \
-        dados-completo treinar-gpt-completo chat-gpt-completo \
-        baixar-dados treinar-gpt-grande chat-gpt-grande \
-        suite-treino suite-treino-rapida suite-treino-grande suite-benchmark
+        dados-completo treinar continuar chat \
+        treinar-cpu continuar-cpu chat-cpu \
+        baixar-dados treinar-grande continuar-grande chat-grande \
+        suite-treino
 
 help:
 	@echo "=============================================================="
-	@echo "  cpp-vibes-ai — Comandos disponiveis (Makefile)"
+	@echo "  cpp-vibes-ai — Mini-Transformer Conversacional (Makefile)"
 	@echo "=============================================================="
 	@echo "  [Build e Testes]"
-	@echo "  make build                Compila todas as etapas e testes ($(TIPO))"
-	@echo "  make test                 Executa todos os testes e regressao (CTest)"
-	@echo "  make clean                Remove o diretorio $(BUILD_DIR)/"
+	@echo "  make build             Compila o modelo e os testes ($(TIPO) + OpenMP)"
+	@echo "  make test              Executa testes unitarios, gradcheck e integracao"
+	@echo "  make clean             Remove o diretorio $(BUILD_DIR)/"
 	@echo ""
-	@echo "  [Suite de Treinos]"
-	@echo "  make suite-treino         Treina Etapas 1, 2 e 3 em dados/completo.txt"
-	@echo "  make suite-treino-rapida  Treino rapido (smoke) das 3 etapas em completo.txt"
-	@echo "  make suite-treino-grande  Treina GPT no corpus grande (OASST1 + Alpaca-PT)"
-	@echo "  make suite-benchmark      Compara tempo e perda das 3 etapas lado a lado"
+	@echo "  [Treino e Chat — Corpus Curado (dados/completo.txt)]"
+	@echo "  make dados-completo    Gera dados/completo.txt juntando os datasets locais"
+	@echo "  make treinar           Treina GPT (BPE $(VOCAB_BPE) + SFT, $(PASSOS) passos)"
+	@echo "  make continuar         Continua treino de $(CKPT) preservando AdamW"
+	@echo "  make chat              Abre chat carregando $(CKPT)"
 	@echo ""
-	@echo "  [Chat Interativo e Treinos Individuais]"
-	@echo "  make etapa1               Treina e abre chat da Etapa 1 (Bigram)"
-	@echo "  make etapa2               Treina e abre chat da Etapa 2 (MLP)"
-	@echo "  make etapa3               Treina e abre chat da Etapa 3 (Transformer)"
-	@echo "  make treinar-mlp          Treina a MLP e salva em $(CKPT_MLP)"
-	@echo "  make chat-mlp             Abre chat da MLP usando checkpoint salvo"
-	@echo "  make treinar-gpt          Treina o GPT ($(PASSOS) passos) e salva checkpoint"
-	@echo "  make chat-gpt             Abre chat do GPT usando checkpoint salvo"
-	@echo "  make dados-completo       Junta datasets locais em dados/completo.txt"
-	@echo "  make treinar-gpt-completo Treina o GPT em dados/completo.txt"
-	@echo "  make chat-gpt-completo    Abre chat do GPT treinado em dados/completo.txt"
-	@echo "  make baixar-dados         Baixa grandes datasets PT (OASST1, Alpaca-PT)"
-	@echo "  make treinar-gpt-grande   Treina o GPT em dados/externos/conversas_grande.txt"
-	@echo "  make chat-gpt-grande      Abre chat do GPT treinado no corpus grande"
+	@echo "  [Treino e Chat — Corpus Otimizado para CPU (~250 KB, recomendado!)]"
+	@echo "  make treinar-cpu       Treina com Dropout + Melhor Validacao em $(DADOS_CPU)"
+	@echo "  make continuar-cpu     Continua treino de $(CKPT_CPU)"
+	@echo "  make chat-cpu          Abre chat carregando $(CKPT_CPU) (com indicador de confianca)"
 	@echo ""
-	@echo "Variaveis opcionais: DADOS=... EPOCAS=... PASSOS=... TIPO=Release|Debug"
+	@echo "  [Treino e Chat — Corpus Grande (OASST1 + Alpaca-PT, 4.5 MB)]"
+	@echo "  make baixar-dados      Baixa e formata os grandes datasets em PT"
+	@echo "  make treinar-grande    Treina GPT (BPE $(VOCAB_GRANDE) + SFT, $(PASSOS_GRANDE) passos)"
+	@echo "  make continuar-grande  Continua treino de $(CKPT_GRANDE)"
+	@echo "  make chat-grande       Abre chat carregando $(CKPT_GRANDE)"
+	@echo ""
+	@echo "  [Suite Completa]"
+	@echo "  make suite-treino      Roda testes + treino no corpus curado"
+	@echo ""
+	@echo "Variaveis opcionais: DADOS=... PASSOS=... DIM=... CAMADAS=... CONTEXTO=... LR=... VOCAB_BPE=..."
 
 configurar:
 	@cmake -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(TIPO)
@@ -79,47 +100,57 @@ build: configurar
 test: build
 	@ctest --test-dir $(BUILD_DIR) --output-on-failure
 
-etapa1: build
-	@./$(BUILD_DIR)/etapa1_bigram $(DADOS)
-
-etapa2: build
-	@./$(BUILD_DIR)/etapa2_mlp $(DADOS) --epocas $(EPOCAS)
-
-etapa3: build
-	@./$(BUILD_DIR)/etapa3_transformer $(DADOS) --passos $(PASSOS)
-
-treinar-mlp: build
-	@./$(BUILD_DIR)/etapa2_mlp $(DADOS) --sem-chat --epocas $(EPOCAS) --salvar $(CKPT_MLP)
-
-$(CKPT_MLP):
-	@$(MAKE) treinar-mlp
-
-chat-mlp: build $(CKPT_MLP)
-	@./$(BUILD_DIR)/etapa2_mlp $(DADOS) --carregar $(CKPT_MLP)
-
-treinar-gpt: build
-	@./$(BUILD_DIR)/etapa3_transformer $(DADOS) --sem-chat --passos $(PASSOS) --salvar $(CKPT_GPT)
-
-$(CKPT_GPT):
-	@$(MAKE) treinar-gpt
-
-chat-gpt: build $(CKPT_GPT)
-	@./$(BUILD_DIR)/etapa3_transformer $(DADOS) --carregar $(CKPT_GPT)
-
 dados/completo.txt: $(DADOS_FONTES)
 	@awk 'FNR==1 && NR!=1 {print ""} {print}' $(DADOS_FONTES) > dados/completo.txt
-	@echo "Dataset combinado gerado em dados/completo.txt ($$(wc -l < dados/completo.txt) linhas, $$(wc -c < dados/completo.txt) bytes)."
+	@echo "Dataset combinado gerado em dados/completo.txt ($$(wc -l < dados/completo.txt) linhas)."
 
 dados-completo: dados/completo.txt
 
-treinar-gpt-completo: build dados/completo.txt
-	@./$(BUILD_DIR)/etapa3_transformer dados/completo.txt --sem-chat --passos $(PASSOS) --salvar $(CKPT_GPT_COMPLETO)
+treinar: build dados/completo.txt
+	@./$(BIN) $(DADOS) --sem-chat \
+		--bpe $(VOCAB_BPE) --sft --dropout 0.05 \
+		--dim $(DIM) --camadas $(CAMADAS) --cabecas $(CABECAS) --contexto $(CONTEXTO) \
+		--batch $(BATCH) --lr $(LR) --passos $(PASSOS) \
+		--salvar $(CKPT)
 
-$(CKPT_GPT_COMPLETO):
-	@$(MAKE) treinar-gpt-completo
+continuar: build dados/completo.txt $(CKPT)
+	@./$(BIN) $(DADOS) --sem-chat \
+		--bpe $(VOCAB_BPE) --sft --dropout 0.05 \
+		--dim $(DIM) --camadas $(CAMADAS) --cabecas $(CABECAS) --contexto $(CONTEXTO) \
+		--batch $(BATCH) --lr $(LR) --passos $(PASSOS) \
+		--continuar $(CKPT) --salvar $(CKPT)
 
-chat-gpt-completo: build dados/completo.txt $(CKPT_GPT_COMPLETO)
-	@./$(BUILD_DIR)/etapa3_transformer dados/completo.txt --carregar $(CKPT_GPT_COMPLETO)
+$(CKPT):
+	@$(MAKE) treinar
+
+chat: build dados/completo.txt $(CKPT)
+	@./$(BIN) $(DADOS) \
+		--bpe $(VOCAB_BPE) \
+		--dim $(DIM) --camadas $(CAMADAS) --cabecas $(CABECAS) --contexto $(CONTEXTO) \
+		--carregar $(CKPT)
+
+treinar-cpu: build $(DADOS_CPU)
+	@./$(BIN) $(DADOS_CPU) --sem-chat \
+		--bpe $(VOCAB_CPU) --sft --dropout 0.1 --melhor-val \
+		--dim $(DIM_CPU) --camadas $(CAMADAS_CPU) --cabecas $(CABECAS) --contexto $(CONTEXTO_CPU) \
+		--batch $(BATCH) --lr $(LR_CPU) --passos $(PASSOS_CPU) \
+		--salvar $(CKPT_CPU)
+
+continuar-cpu: build $(DADOS_CPU) $(CKPT_CPU)
+	@./$(BIN) $(DADOS_CPU) --sem-chat \
+		--bpe $(VOCAB_CPU) --sft --dropout 0.1 --melhor-val \
+		--dim $(DIM_CPU) --camadas $(CAMADAS_CPU) --cabecas $(CABECAS) --contexto $(CONTEXTO_CPU) \
+		--batch $(BATCH) --lr $(LR_CPU) --passos $(PASSOS_CPU) \
+		--continuar $(CKPT_CPU) --salvar $(CKPT_CPU)
+
+$(CKPT_CPU):
+	@$(MAKE) treinar-cpu
+
+chat-cpu: build $(DADOS_CPU) $(CKPT_CPU)
+	@./$(BIN) $(DADOS_CPU) \
+		--bpe $(VOCAB_CPU) \
+		--dim $(DIM_CPU) --camadas $(CAMADAS_CPU) --cabecas $(CABECAS) --contexto $(CONTEXTO_CPU) \
+		--carregar $(CKPT_CPU)
 
 baixar-dados:
 	@python3 scripts/baixar_dados.py --dataset todos
@@ -127,51 +158,31 @@ baixar-dados:
 dados/externos/conversas_grande.txt:
 	@$(MAKE) baixar-dados
 
-treinar-gpt-grande: build dados/externos/conversas_grande.txt
-	@./$(BUILD_DIR)/etapa3_transformer dados/externos/conversas_grande.txt --sem-chat --passos $(PASSOS) --salvar $(CKPT_GPT_GRANDE)
+treinar-grande: build dados/externos/conversas_grande.txt
+	@./$(BIN) dados/externos/conversas_grande.txt --sem-chat \
+		--bpe $(VOCAB_GRANDE) --sft \
+		--dim $(DIM_GRANDE) --camadas $(CAMADAS_GRANDE) --cabecas $(CABECAS) --contexto $(CONTEXTO_GRANDE) \
+		--batch $(BATCH) --lr $(LR_GRANDE) --passos $(PASSOS_GRANDE) \
+		--salvar $(CKPT_GRANDE)
 
-$(CKPT_GPT_GRANDE):
-	@$(MAKE) treinar-gpt-grande
+continuar-grande: build dados/externos/conversas_grande.txt $(CKPT_GRANDE)
+	@./$(BIN) dados/externos/conversas_grande.txt --sem-chat \
+		--bpe $(VOCAB_GRANDE) --sft \
+		--dim $(DIM_GRANDE) --camadas $(CAMADAS_GRANDE) --cabecas $(CABECAS) --contexto $(CONTEXTO_GRANDE) \
+		--batch $(BATCH) --lr $(LR_GRANDE) --passos $(PASSOS_GRANDE) \
+		--continuar $(CKPT_GRANDE) --salvar $(CKPT_GRANDE)
 
-chat-gpt-grande: build dados/externos/conversas_grande.txt $(CKPT_GPT_GRANDE)
-	@./$(BUILD_DIR)/etapa3_transformer dados/externos/conversas_grande.txt --carregar $(CKPT_GPT_GRANDE)
+$(CKPT_GRANDE):
+	@$(MAKE) treinar-grande
 
-# -----------------------------------------------------------------------------
-# Suite de Treinos (comparacao e treinamento em lote)
-# -----------------------------------------------------------------------------
-suite-treino-rapida: build dados/completo.txt
-	@echo "=== [Suite Rapida 1/3] Etapa 1: Bigram (dados/completo.txt) ==="
-	@./$(BUILD_DIR)/etapa1_bigram dados/completo.txt --sem-chat
-	@echo "=== [Suite Rapida 2/3] Etapa 2: MLP (15 epocas, dados/completo.txt) ==="
-	@./$(BUILD_DIR)/etapa2_mlp dados/completo.txt --sem-chat --epocas 15
-	@echo "=== [Suite Rapida 3/3] Etapa 3: Mini-Transformer (60 passos, dados/completo.txt) ==="
-	@./$(BUILD_DIR)/etapa3_transformer dados/completo.txt --sem-chat --passos 60
-	@echo "=== Suite rapida concluida com sucesso! ==="
+chat-grande: build dados/externos/conversas_grande.txt $(CKPT_GRANDE)
+	@./$(BIN) dados/externos/conversas_grande.txt \
+		--bpe $(VOCAB_GRANDE) \
+		--dim $(DIM_GRANDE) --camadas $(CAMADAS_GRANDE) --cabecas $(CABECAS) --contexto $(CONTEXTO_GRANDE) \
+		--carregar $(CKPT_GRANDE)
 
-suite-treino: build dados/completo.txt
-	@echo "=== [Suite Completa 1/3] Etapa 1: Bigram (dados/completo.txt) ==="
-	@./$(BUILD_DIR)/etapa1_bigram dados/completo.txt --sem-chat
-	@echo "=== [Suite Completa 2/3] Etapa 2: MLP ($(EPOCAS) epocas -> $(CKPT_MLP_COMPLETO)) ==="
-	@./$(BUILD_DIR)/etapa2_mlp dados/completo.txt --sem-chat --epocas $(EPOCAS) --salvar $(CKPT_MLP_COMPLETO)
-	@echo "=== [Suite Completa 3/3] Etapa 3: Mini-Transformer ($(PASSOS) passos -> $(CKPT_GPT_COMPLETO)) ==="
-	@./$(BUILD_DIR)/etapa3_transformer dados/completo.txt --sem-chat --passos $(PASSOS) --salvar $(CKPT_GPT_COMPLETO)
-	@echo "=== Suite completa concluida! Use 'make chat-gpt-completo' para conversar. ==="
-
-suite-treino-grande: build dados/externos/conversas_grande.txt
-	@echo "=== [Suite Grande 1/2] Etapa 1: Bigram (conversas_grande.txt) ==="
-	@./$(BUILD_DIR)/etapa1_bigram dados/externos/conversas_grande.txt --sem-chat
-	@echo "=== [Suite Grande 2/2] Etapa 3: Mini-Transformer ($(PASSOS) passos -> $(CKPT_GPT_GRANDE)) ==="
-	@./$(BUILD_DIR)/etapa3_transformer dados/externos/conversas_grande.txt --sem-chat --passos $(PASSOS) --salvar $(CKPT_GPT_GRANDE)
-	@echo "=== Suite grande concluida! Use 'make chat-gpt-grande' para conversar. ==="
-
-suite-benchmark: build
-	@echo "=== Benchmark comparativo em $(DADOS) ==="
-	@echo "--- Etapa 1 (Bigram) ---"
-	@/usr/bin/time -f "Tempo Etapa 1: %es" ./$(BUILD_DIR)/etapa1_bigram $(DADOS) --sem-chat | grep -E "Parametros|Resultado|Perda otima"
-	@echo "--- Etapa 2 (MLP, 40 epocas) ---"
-	@/usr/bin/time -f "Tempo Etapa 2: %es" ./$(BUILD_DIR)/etapa2_mlp $(DADOS) --sem-chat --epocas 40 | grep -E "Parametros|Epoca  40|Perda inicial"
-	@echo "--- Etapa 3 (Mini-Transformer, 100 passos) ---"
-	@/usr/bin/time -f "Tempo Etapa 3: %es" ./$(BUILD_DIR)/etapa3_transformer $(DADOS) --sem-chat --passos 100 | grep -E "Parametros|Passo  100|Perda inicial"
+suite-treino: test treinar
+	@echo "=== Suite de testes e treino concluida! Rode 'make chat' para conversar. ==="
 
 clean:
 	@rm -rf $(BUILD_DIR)
