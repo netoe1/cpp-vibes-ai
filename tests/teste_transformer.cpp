@@ -47,6 +47,19 @@ void testar_mascara_causal() {
     }
     verificar(max_diff_passado < 1e-6f,
               "Mascara causal impede que tokens futuros influenciem posicoes anteriores");
+
+    // Validar equivalencia numerica exata do KV-Cache vs forward_sequencia completo
+    vibes::KVCache kv(cfg);
+    std::vector<float> logits_kv(cfg.vocab, 0.0f);
+    float max_diff_kv = 0.0f;
+    for (std::size_t t = 0; t < seq_a.size(); ++t) {
+        modelo.forward_token(seq_a[t], t, kv, logits_kv);
+        for (std::size_t v = 0; v < cfg.vocab; ++v) {
+            max_diff_kv = std::max(max_diff_kv, std::abs(logits_kv[v] - c1.logits(t, v)));
+        }
+    }
+    verificar(max_diff_kv < 1e-5f,
+              "KV-Cache produz exatamente os mesmos logits de forward_sequencia");
 }
 
 void testar_gradient_check_transformer() {

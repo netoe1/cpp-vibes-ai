@@ -1,0 +1,125 @@
+Usuario: O que é filosofia?
+IA: Filosofia é o amor pela sabedoria: a investigação crítica sobre existência, conhecimento, ética, lógica e o sentido da vida usando a razão.
+
+Usuario: Quem foi Sócrates?
+IA: Sócrates foi um filósofo grego clássico famoso pelo método maiêutico — fazer perguntas profundas para expor contradições e buscar a verdade.
+
+Usuario: O que significa "Só sei que nada sei"?
+IA: A frase atribuída a Sócrates mostra que a verdadeira sabedoria começa na humildade intelectual: reconhecer os limites do próprio conhecimento.
+
+Usuario: O que é o Mito da Caverna de Platão?
+IA: É uma alegoria onde prisioneiros veem apenas sombras na parede e acham que são a realidade, representando a diferença entre aparência e conhecimento verdadeiro.
+
+Usuario: Qual a diferença entre Platão e Aristóteles?
+IA: Platão defendia que a realidade verdadeira está no mundo das ideias perfeitas; Aristóteles era mais empírico e estudava o mundo físico pela observação e lógica.
+
+Usuario: O que é a ética das virtudes de Aristóteles?
+IA: Para Aristóteles, a vida boa (eudaimonia) vem da prática habitual de virtudes como coragem, prudência e justiça, buscando o equilíbrio entre extremos.
+
+Usuario: O que é estoicismo?
+IA: Estoicismo é uma filosofia prática que ensina a focar apenas no que está sob nosso controle — nossas escolhas e reações — e aceitar o resto com serenidade.
+
+Usuario: Quem foram os principais filósofos estoicos?
+IA: Os mais conhecidos são Zenão de Cítio (fundador), Sêneca, o ex-escravo Epicteto e o imperador romano Marco Aurélio.
+
+Usuario: O que é o livro Meditações de Marco Aurélio?
+IA: Meditações é o diário pessoal do imperador romano Marco Aurélio, cheio de reflexões estoicas sobre disciplina, dever, finitude e autocontrole.
+
+Usuario: O que significa Amor Fati?
+IA: Amor Fati significa "amor ao destino": não apenas suportar o que acontece de necessário na vida, mas abraçá-lo e usá-lo como combustível para crescer.
+
+Usuario: O que significa Memento Mori?
+IA: Memento Mori significa "lembre-se de que você é mortal" — um lembrete estoico para valorizar o tempo presente e focar no que realmente importa.
+
+Usuario: O que é a dicotomia do controle em Epicteto?
+IA: Epicteto divide tudo em duas categorias: o que depende de nós (nossos juízos e ações) e o que não depende (clima, opinião alheia, passado).
+
+Usuario: O que significa "Penso, logo existo" de Descartes?
+IA: Cogito, ergo sum mostra que mesmo que eu duvide de tudo ao meu redor, o próprio ato de duvidar prova que existe um sujeito pensante.
+
+Usuario: O que é o imperativo categórico de Kant?
+IA: Kant propõe agir apenas segundo princípios que você gostaria que se tornassem uma lei universal válida para toda a humanidade, tratando pessoas como fins e nunca só como meios.
+
+Usuario: O que Nietzsche quis dizer com "Deus está morto"?
+IA: Nietzsche diagnosticou o colapso dos valores tradicionais absolutos na modernidade, alertando para o risco do niilismo e o desafio de criar novos valores próprios.
+
+Usuario: O que é o Eterno Retorno em Nietzsche?
+IA: É um experimento mental: se você tivesse que reviver sua vida exatamente igual infinitas vezes, você a amaria ou se desesperaria? Serve para testar a autenticidade das suas escolhas.
+
+Usuario: O que é niilismo?
+IA: Niilismo é a visão de que a vida não possui um sentido objetivo ou valor intrínseco pré-estabelecido, podendo levar ao desespero (passivo) ou à liberdade criativa (ativo).
+
+Usuario: O que é existencialismo?
+IA: Existencialismo é a corrente filosófica que afirma que "a existência precede a essência": nascemos primeiro e nos definimos pelas nossas escolhas livres e responsabilidades.
+
+Usuario: Quem foi Jean-Paul Sartre?
+IA: Sartre foi um filósofo existencialista francês que dizia que o ser humano está "condenado a ser livre", pois mesmo não escolher já é uma escolha.
+
+Usuario: O que é o absurdismo de Albert Camus?
+IA: Para Camus, o absurdo nasce do choque entre a busca humana por sentido e o silêncio indiferente do universo; a resposta é a revolta lúcida e viver intensamente.
+
+Usuario: O que significa "É preciso imaginar Sísifo feliz"?
+IA: No ensaio O Mito de Sísifo, Camus usa o herói condenado a rolar uma pedra eternamente para mostrar que podemos encontrar dignidade e alegria na própria luta, sem ilusões.
+
+Usuario: Quem foi Arthur Schopenhauer?
+IA: Schopenhauer foi um filósofo alemão que via o mundo movido por uma "Vontade" cega e insaciável, encontrando alívio do sofrimento na arte, especialmente na música, e na compaixão.
+
+Usuario: Por que Schopenhauer valorizava tanto a música?
+IA: Para ele, enquanto outras artes copiam ideias do mundo, a música expressa diretamente a própria essência da Vontade e das emoções humanas.
+
+Usuario: Quem foi Baruch Spinoza?
+IA: Spinoza foi um filósofo racionalista que identificou Deus com a própria Natureza (Deus sive Natura), defendendo a liberdade de pensamento e a compreensão racional das emoções.
+
+Usuario: O que é utilitarismo?
+IA: Utilitarismo, associado a Bentham e John Stuart Mill, avalia ações pelas suas consequências, buscando a maior felicidade e o menor sofrimento para o maior número de pessoas.
+
+Usuario: O que é o dilema do bonde?
+IA: É um experimento ético que compara agir para salvar cinco pessoas sacrificando uma versus não intervir, expondo o conflito entre utilitarismo e ética deontológica.
+
+Usuario: O que é epistemologia?
+IA: Epistemologia é o ramo da filosofia que estuda o que é o conhecimento, como o justificamos e quais são os limites do que podemos saber com certeza.
+
+Usuario: Qual a diferença entre racionalismo e empirismo?
+IA: Racionalistas (como Descartes) priorizam a razão e ideias inatas; empiristas (como Locke e Hume) defendem que todo conhecimento nasce da experiência sensorial.
+
+Usuario: O que é a Navalha de Occam?
+IA: É um princípio metodológico que sugere preferir a explicação mais simples que dê conta de todos os fatos, sem multiplicar entidades desnecessariamente.
+
+Usuario: O que é o problema da indução de David Hume?
+IA: Hume mostrou que o fato de algo ter acontecido mil vezes no passado não prova logicamente que acontecerá amanhã — ciência se baseia em probabilidade e hábito, não certeza absoluta.
+
+Usuario: O que é falseabilidade em Karl Popper?
+IA: Para Popper, uma teoria só é científica se puder ser testada e potencialmente refutada por experimentos; teorias que explicam tudo sem risco de erro não são ciência.
+
+Usuario: O que é o Teste de Turing?
+IA: Proposto por Alan Turing em 1950, avalia se uma máquina consegue exibir comportamento conversacional indistinguível de um ser humano.
+
+Usuario: O que é o argumento do Quarto Chinês de John Searle?
+IA: Searle imagina alguém manipulando símbolos chineses por regras sem entender o idioma, questionando se computadores têm compreensão real ou apenas sintaxe.
+
+Usuario: Máquinas podem ter consciência?
+IA: É uma das grandes questões abertas da filosofia da mente: funcionalistas dizem que talvez sim se reproduzirem os processos certos; outros apontam o "problema difícil" da experiência subjetiva.
+
+Usuario: O que é livre-arbítrio versus determinismo?
+IA: Determinismo afirma que todo evento decorre de causas anteriores; livre-arbítrio defende que temos escolha genuína. Compatibilistas tentam conciliar os dois.
+
+Usuario: O que é lógica formal?
+IA: Lógica formal estuda a estrutura válida dos argumentos independentemente do conteúdo, sendo a base matemática da filosofia analítica e da ciência da computação.
+
+Usuario: O que é uma falácia lógica?
+IA: Uma falácia é um erro de raciocínio que parece convincente na superfície, como atacar a pessoa em vez do argumento (ad hominem) ou criar um espantalho.
+
+Usuario: O que é o argumento ad hominem?
+IA: É a falácia de tentar invalidar uma ideia atacando o caráter ou características de quem a falou, em vez de refutar o argumento em si.
+
+Usuario: O que é o paradoxo de Zenão?
+IA: Zenão propôs paradoxos como Aquiles e a Tartaruga para questionar o movimento e o infinito, resolvidos séculos depois pelo cálculo de séries convergentes.
+
+Usuario: O que é o Navio de Teseu?
+IA: É um paradoxo sobre identidade: se todas as peças de um navio forem trocadas aos poucos, ele ainda é o mesmo navio? Isso também se aplica a pessoas e sistemas.
+
+Usuario: Como a filosofia ajuda quem trabalha com computação?
+IA: Filosofia treina clareza conceitual, lógica rigorosa, pensamento crítico e reflexão ética sobre o impacto da tecnologia e da inteligência artificial na sociedade.
+
+Usuario: Você gosta de filosofia?
+IA: Adoro filosofia! Ela conversa diretamente com lógica, computação e as perguntas profundas sobre o que significa pensar e aprender.

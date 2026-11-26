@@ -50,7 +50,21 @@ Ao finalizar **qualquer feature, correção ou etapa**, é obrigatório criar e 
 
 ---
 
-## 4. Regras Gerais do Repositório
+## 4. Changelogs e Commits Organizados
+
+Sempre que finalizar um marco, nova feature ou evolução relevante do projeto:
+
+1. **Atualize `.spec/`**: reflita o novo status e eventuais decisões arquiteturais (ADRs) em `.spec/03_status_e_decisoes.md` (e demais specs impactadas).
+2. **Crie um novo changelog em `changelogs/`**:
+   - Use numeração sequencial: `changelogs/NN_<resumo_curto>.md` (ex.: `06_kv_cache_datasets_e_temas.md`).
+   - Documente **motivação**, **o que mudou**, **como o modelo evoluiu** (arquitetura, dados, testes, métricas observadas) e **impacto prático**.
+   - Adicione a nova entrada na tabela e no diagrama de `changelogs/README.md`.
+3. **Valide antes do commit**: execute `make test` (ou `ctest --test-dir build --output-on-failure`) e garanta compilação limpa sem avisos (`-Wall -Wextra -Wpedantic`).
+4. **Commit e Push**: faça commits com mensagens claras e descritivas em português, sem incluir artefatos temporários (`build/`, `dados/externos/`, `dados/completo.txt`).
+
+---
+
+## 5. Regras Gerais do Repositório
 
 - **100% em português**: identificadores, comentários, mensagens de terminal, `docs/` e `.spec/`.
 - **C++20 puro + OpenMP**: zero dependências externas de Machine Learning; manter fallback funcional caso OpenMP não esteja disponível.

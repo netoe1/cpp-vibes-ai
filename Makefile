@@ -21,14 +21,14 @@ BIN          := $(BUILD_DIR)/etapa3_transformer
 
 # Hiperparametros padrao para treino rapido e coerente em dados/completo.txt
 DADOS        ?= dados/completo.txt
-VOCAB_BPE    ?= 512
-DIM          ?= 96
+VOCAB_BPE    ?= 640
+DIM          ?= 128
 CAMADAS      ?= 3
 CABECAS      ?= 4
-CONTEXTO     ?= 64
+CONTEXTO     ?= 80
 BATCH        ?= 16
-LR           ?= 0.005
-PASSOS       ?= 600
+LR           ?= 0.004
+PASSOS       ?= 900
 CKPT         ?= $(BUILD_DIR)/modelo.vibes
 
 # Hiperparametros padrao para o corpus otimizado para CPU (~250 KB, ~1300 dialogos limpos)
@@ -50,7 +50,7 @@ PASSOS_GRANDE   ?= 800
 LR_GRANDE       ?= 0.003
 CKPT_GRANDE     ?= $(BUILD_DIR)/modelo_gpt_bpe.vibes
 
-DADOS_FONTES := dados/dialogos.txt dados/conversa_cotidiana.txt dados/programacao_cpp.txt dados/machine_learning.txt
+DADOS_FONTES := dados/dialogos.txt dados/conversa_cotidiana.txt dados/programacao_cpp.txt dados/machine_learning.txt dados/filosofia.txt dados/computacao.txt dados/musica_rock_metal.txt
 
 .DEFAULT_GOAL := help
 

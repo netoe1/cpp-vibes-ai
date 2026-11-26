@@ -153,6 +153,30 @@ std::vector<vibes::SequenciaTreino> construir_janelas_avaliacao(
     return seqs;
 }
 
+// Extrai as perguntas ("Usuario: ...") presentes no corpus para o comando /temas do chat.
+std::vector<std::string> extrair_perguntas_corpus(const std::string& texto) {
+    std::vector<std::string> perguntas;
+    std::istringstream iss(texto);
+    std::string linha;
+    const std::string pref = "Usuario: ";
+    while (std::getline(iss, linha)) {
+        if (linha.rfind(pref, 0) == 0) {
+            std::string p = linha.substr(pref.size());
+            if (!p.empty()) {
+                perguntas.push_back(std::move(p));
+            }
+        }
+    }
+    return perguntas;
+}
+
+std::string para_minusculas_ascii(std::string s) {
+    for (char& c : s) {
+        if (c >= 'A' && c <= 'Z') c = static_cast<char>(c - 'A' + 'a');
+    }
+    return s;
+}
+
 }  // namespace
 
 int main(int argc, char* argv[]) {
@@ -432,14 +456,47 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    // 5. Chat interativo com historico, indicador de confianca e fallback honesto
+    // 5. Chat interativo com historico, indicador de confianca, /temas e fallback honesto
     float temperatura = 0.25f;
     std::size_t top_k = 4;
     float limiar_confianca = 0.72f;  // abaixo disso, tenta sem historico ou avisa fora do dominio
     std::string historico;
+    const auto perguntas_conhecidas = extrair_perguntas_corpus(texto);
+
+    auto mostrar_sugestoes = [&](const std::string& filtro, std::size_t limite) {
+        if (perguntas_conhecidas.empty()) {
+            std::cout << "[Temas] Nenhuma pergunta no formato 'Usuario: ...' encontrada.\n";
+            return;
+        }
+        std::vector<std::size_t> candidatas;
+        const std::string filtro_low = para_minusculas_ascii(filtro);
+        for (std::size_t i = 0; i < perguntas_conhecidas.size(); ++i) {
+            if (filtro_low.empty() ||
+                para_minusculas_ascii(perguntas_conhecidas[i]).find(filtro_low) !=
+                    std::string::npos) {
+                candidatas.push_back(i);
+            }
+        }
+        if (candidatas.empty()) {
+            std::cout << "[Temas] Nenhuma pergunta encontrada com o filtro '" << filtro << "'.\n";
+            return;
+        }
+        std::shuffle(candidatas.begin(), candidatas.end(), rng.motor());
+        const std::size_t mostrar = std::min(limite, candidatas.size());
+        std::cout << "[Temas] Mostrando " << mostrar << " de " << candidatas.size()
+                  << (filtro.empty() ? " perguntas conhecidas"
+                                     : (" perguntas sobre '" + filtro + "'"))
+                  << ":\n";
+        for (std::size_t i = 0; i < mostrar; ++i) {
+            std::cout << "  - " << perguntas_conhecidas[candidatas[i]] << "\n";
+        }
+    };
 
     std::cout << "=== Modo Chat Conversacional (Etapa 3: Mini-Transformer) ===\n";
-    std::cout << "Comandos: /temp <val> | /topk <k> | /conf <0..1> | /limpar | /salvar <arq> | /sair\n\n";
+    std::cout << "Comandos: /temas [filtro] | /temp <val> | /topk <k> | /conf <0..1> | /limpar | "
+                 "/salvar <arq> | /sair\n";
+    mostrar_sugestoes("", 5);
+    std::cout << "\n";
 
     std::string entrada;
     while (true) {
@@ -450,6 +507,14 @@ int main(int argc, char* argv[]) {
         if (entrada == "/sair" || entrada == "sair") {
             std::cout << "Encerrando chat. Ate a proxima!\n";
             break;
+        }
+        if (entrada == "/temas" || entrada == "/ajuda") {
+            mostrar_sugestoes("", 12);
+            continue;
+        }
+        if (entrada.rfind("/temas ", 0) == 0) {
+            mostrar_sugestoes(entrada.substr(7), 15);
+            continue;
         }
         if (entrada == "/limpar") {
             historico.clear();

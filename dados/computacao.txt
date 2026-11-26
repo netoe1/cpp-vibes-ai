@@ -1,0 +1,107 @@
+Usuario: O que é ciência da computação?
+IA: Ciência da computação é o estudo dos fundamentos teóricos da informação, dos algoritmos, da arquitetura de máquinas e de como resolver problemas de forma sistemática.
+
+Usuario: Quem foi Alan Turing?
+IA: Alan Turing foi um matemático britânico considerado o pai da computação moderna; ele formalizou a Máquina de Turing e ajudou a decifrar a máquina Enigma.
+
+Usuario: O que é uma Máquina de Turing?
+IA: É um modelo matemático abstrato com uma fita infinita e regras de estado capaz de simular qualquer algoritmo computável.
+
+Usuario: O que é a arquitetura de Von Neumann?
+IA: É o modelo usado pela maioria dos computadores modernos, onde instruções do programa e dados compartilham a mesma memória principal.
+
+Usuario: Como funciona a hierarquia de memória de um computador?
+IA: Vai do mais rápido e menor para o mais lento e maior: registradores da CPU, caches L1/L2/L3, memória RAM e armazenamento em SSD ou HD.
+
+Usuario: Por que a cache da CPU é tão importante para desempenho?
+IA: Acessar a cache L1 leva cerca de 1 nanossegundo, enquanto ir até a RAM pode levar 100 nanossegundos; organizar dados contíguos evita esperas gigantes da CPU.
+
+Usuario: O que é um sistema operacional?
+IA: É o software fundamental (como Linux, Windows ou macOS) que gerencia CPU, memória, arquivos, dispositivos e processos para os programas rodarem com segurança.
+
+Usuario: Qual a diferença entre processo e thread?
+IA: Um processo tem seu próprio espaço de memória isolado; threads vivem dentro do mesmo processo e compartilham a mesma memória, o que agiliza comunicação mas exige cuidado com concorrência.
+
+Usuario: O que é memória virtual?
+IA: Memória virtual é uma abstração do sistema operacional que dá a cada processo a ilusão de ter um espaço contínuo e isolado, mapeando páginas para a RAM física.
+
+Usuario: O que é deadlock em sistemas concorrentes?
+IA: Deadlock acontece quando duas ou mais threads ficam bloqueadas para sempre esperando recursos que a outra está segurando.
+
+Usuario: O que é um mutex?
+IA: Mutex (mutual exclusion) é uma trava usada para garantir que apenas uma thread por vez acesse uma região crítica de memória compartilhada.
+
+Usuario: Por que Linux é tão usado em servidores e desenvolvimento?
+IA: Linux é código aberto, estável, leve, altamente configurável, possui excelente terminal e ferramentas nativas para C/C++, redes e contêineres.
+
+Usuario: Qual a diferença entre compilador e interpretador?
+IA: Um compilador (como g++) traduz o código-fonte inteiro para código de máquina antes da execução; um interpretador executa instruções diretamente passo a passo em tempo de execução.
+
+Usuario: Quais são as fases principais de um compilador?
+IA: Análise léxica (tokens), análise sintática (AST), análise semântica, otimização intermediária (IR) e geração de código de máquina.
+
+Usuario: O que é uma tabela hash (hash table)?
+IA: É uma estrutura de dados que usa uma função de hash para mapear chaves diretamente para posições em um vetor, oferecendo busca média em tempo constante O(1).
+
+Usuario: Qual a diferença entre pilha (stack) e fila (queue)?
+IA: A pilha segue LIFO (o último a entrar é o primeiro a sair); a fila segue FIFO (o primeiro a entrar é o primeiro a sair).
+
+Usuario: O que é uma árvore binária de busca?
+IA: É uma estrutura hierárquica onde nós à esquerda são menores e nós à direita são maiores que o nó atual, permitindo buscas eficientes em O(log N) quando balanceada.
+
+Usuario: O que é uma B-Tree em bancos de dados?
+IA: B-Tree é uma árvore balanceada com muitos filhos por nó, otimizada para reduzir leituras em disco e acelerar índices em bancos de dados relacionais.
+
+Usuario: O que é um grafo em computação?
+IA: Um grafo é um conjunto de vértices conectados por arestas, usado para modelar redes sociais, rotas de GPS, dependências de build e circuitos.
+
+Usuario: Qual a diferença entre busca em largura (BFS) e em profundidade (DFS)?
+IA: BFS explora o grafo camada por camada usando uma fila (achando o menor caminho sem pesos); DFS desce o máximo possível por um ramo usando pilha ou recursão.
+
+Usuario: O que faz o algoritmo de Dijkstra?
+IA: Dijkstra encontra o caminho mínimo de um nó de origem até todos os outros em um grafo com pesos não-negativos.
+
+Usuario: O que é programação dinâmica?
+IA: É uma técnica que resolve problemas complexos quebrando-os em subproblemas sobrepostos e guardando os resultados para não recalcular o mesmo trabalho.
+
+Usuario: O que é TCP/IP?
+IA: É o conjunto de protocolos que faz a internet funcionar: IP cuida do endereçamento e roteamento de pacotes, e TCP garante entrega confiável e ordenada.
+
+Usuario: Qual a diferença entre TCP e UDP?
+IA: TCP garante entrega ordenada e retransmite pacotes perdidos; UDP envia pacotes sem confirmação, sendo mais rápido para jogos online, áudio e vídeo em tempo real.
+
+Usuario: O que é DNS?
+IA: DNS é a "agenda telefônica" da internet: traduz nomes legíveis como github.com para endereços IP numéricos.
+
+Usuario: O que é HTTP e HTTPS?
+IA: HTTP é o protocolo de comunicação da web entre cliente e servidor; HTTPS adiciona criptografia TLS para proteger privacidade e integridade dos dados.
+
+Usuario: O que é criptografia assimétrica?
+IA: Usa um par de chaves: uma chave pública (para cifrar ou verificar assinaturas) e uma chave privada (mantida em segredo para decifrar ou assinar).
+
+Usuario: O que é uma função de hash criptográfica como SHA-256?
+IA: Transforma qualquer entrada em uma assinatura fixa de 256 bits de forma irreversível; mudar 1 único bit na entrada muda completamente o hash resultante.
+
+Usuario: O que significa ACID em bancos de dados?
+IA: ACID significa Atomicidade, Consistência, Isolamento e Durabilidade — propriedades que garantem transações confiáveis mesmo em caso de falhas.
+
+Usuario: O que é SIMD (AVX2) em CPUs modernas?
+IA: SIMD significa Single Instruction, Multiple Data: permite que uma única instrução da CPU opere em 8 números float ao mesmo tempo, acelerando matrizes e IA.
+
+Usuario: O que é software livre (open source)?
+IA: Software livre garante a liberdade de usar, estudar, modificar e redistribuir o código-fonte, impulsionando projetos como Linux, GCC e Git.
+
+Usuario: O que é o problema P vs NP?
+IA: É o maior problema aberto da computação: pergunta se todo problema cuja solução pode ser verificada rapidamente (NP) também pode ser resolvido rapidamente (P).
+
+Usuario: O que é recursão em programação?
+IA: Recursão é quando uma função chama a si mesma para resolver versões menores do problema até atingir um caso base de parada.
+
+Usuario: Qual a diferença entre memória Stack e Heap?
+IA: A Stack guarda variáveis locais de forma automática e muito rápida; o Heap permite alocação dinâmica de tamanho flexível, gerenciada em C++ via RAII e std::vector.
+
+Usuario: O que é um contêiner como Docker?
+IA: Um contêiner empacota uma aplicação e suas dependências usando isolamento do kernel Linux, garantindo que ela rode igual em qualquer máquina.
+
+Usuario: O que é um sistema distribuído?
+IA: É um conjunto de computadores independentes em rede que cooperam para parecer um único sistema, lidando com latência, falhas parciais e consenso.

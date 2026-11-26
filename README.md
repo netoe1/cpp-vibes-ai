@@ -19,6 +19,9 @@ cpp-vibes-ai/
 │   ├── conversa_cotidiana.txt  # Conversas naturais do dia a dia e multi-turno
 │   ├── programacao_cpp.txt     # Diálogos sobre C++20, OpenMP e CMake
 │   ├── machine_learning.txt    # Diálogos sobre ML, Backprop, Attention e LLMs
+│   ├── filosofia.txt           # Sócrates, Estoicismo, Nietzsche, Kant, Camus e ética da IA
+│   ├── computacao.txt          # SO, Linux, arquitetura, redes, compiladores e algoritmos
+│   ├── musica_rock_metal.txt   # Heavy Metal, Rock clássico, subgêneros e teoria musical
 │   └── completo.txt            # Todos os datasets locais combinados
 ├── docs/
 │   ├── 00_roteiro.md        # Visão geral da trilha educativa

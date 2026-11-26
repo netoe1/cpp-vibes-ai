@@ -41,6 +41,22 @@ struct ResultadoGeracao {
     float perplexidade = 0.0f;     // exp(-log_prob_medio); menor = mais confiante
 };
 
+// KV-Cache para geracao autoregressiva rapida: armazena as chaves (K) e valores (V)
+// ja calculados em cada camada para nao recalcular todos os tokens anteriores a cada passo.
+struct KVCache {
+    std::vector<Matriz> K;
+    std::vector<Matriz> V;
+
+    explicit KVCache(const ConfigTransformer& cfg) {
+        K.reserve(cfg.num_camadas);
+        V.reserve(cfg.num_camadas);
+        for (std::size_t l = 0; l < cfg.num_camadas; ++l) {
+            K.emplace_back(cfg.contexto_max, cfg.dim_modelo, 0.0f);
+            V.emplace_back(cfg.contexto_max, cfg.dim_modelo, 0.0f);
+        }
+    }
+};
+
 // Uma sequencia de treinamento: entrada[0..T-1] -> alvo[0..T-1] (deslocado em 1 token).
 // Se `mascara` for fornecida (modo SFT), apenas posicoes com mascara[t] > 0 contribuem
 // para a perda e gradientes (ex.: 1.0 nas respostas da IA e 0.0 no prompt do Usuario).
@@ -890,42 +906,178 @@ public:
         return static_cast<float>(perda_total / static_cast<double>(sequencias.size()));
     }
 
-    // Gera IDs autoregressivamente usando Temperatura e Top-K e retorna tambem
-    // a confianca media (media geometrica das probabilidades) e perplexidade.
+    // Forward incremental de 1 unico token na posicao `pos` usando KV-Cache.
+    // Produz exatamente os mesmos logits da posicao `pos` de forward_sequencia,
+    // mas em tempo O(pos * D + D^2) em vez de recomputar toda a sequencia!
+    void forward_token(int token, std::size_t pos, KVCache& kv,
+                       std::vector<float>& logits_saida) const {
+        assert(pos < cfg_.contexto_max);
+        const std::size_t D = cfg_.dim_modelo;
+        const std::size_t Nh = cfg_.num_cabecas;
+        const std::size_t dh = cfg_.dim_cabeca();
+        const float escala_attn = 1.0f / std::sqrt(static_cast<float>(dh));
+
+        auto ln_1d = [&](const std::vector<float>& in, const std::vector<float>& g,
+                         const std::vector<float>& b, std::vector<float>& out) {
+            float media = 0.0f;
+            for (std::size_t i = 0; i < D; ++i) media += in[i];
+            media /= static_cast<float>(D);
+            float var = 0.0f;
+            for (std::size_t i = 0; i < D; ++i) {
+                const float df = in[i] - media;
+                var += df * df;
+            }
+            var /= static_cast<float>(D);
+            const float r = 1.0f / std::sqrt(var + 1e-5f);
+            for (std::size_t i = 0; i < D; ++i) {
+                out[i] = g[i] * ((in[i] - media) * r) + b[i];
+            }
+        };
+
+        auto lin_1d = [](const std::vector<float>& in, const Matriz& W,
+                         const std::vector<float>& b, std::vector<float>& out) {
+            const std::size_t Cin = W.linhas();
+            const std::size_t Cout = W.colunas();
+            out.assign(b.begin(), b.end());
+            for (std::size_t i = 0; i < Cin; ++i) {
+                const float xi = in[i];
+                const auto w_i = W.linha(i);
+                for (std::size_t o = 0; o < Cout; ++o) {
+                    out[o] += xi * w_i[o];
+                }
+            }
+        };
+
+        std::vector<float> x(D), ln_buf(D), q(D), k_cur(D), v_cur(D), ctx(D), proj(D);
+        std::vector<float> ff1(cfg_.dim_ff), ff2(D);
+        std::vector<float> scores(pos + 1);
+
+        const auto e_tok = pesos_.w_tok.linha(static_cast<std::size_t>(token));
+        const auto e_pos = pesos_.w_pos.linha(pos);
+        for (std::size_t d = 0; d < D; ++d) {
+            x[d] = e_tok[d] + e_pos[d];
+        }
+
+        for (std::size_t l = 0; l < cfg_.num_camadas; ++l) {
+            const auto& blk = pesos_.blocos[l];
+            ln_1d(x, blk.ln1_g, blk.ln1_b, ln_buf);
+            lin_1d(ln_buf, blk.Wq, blk.bq, q);
+            lin_1d(ln_buf, blk.Wk, blk.bk, k_cur);
+            lin_1d(ln_buf, blk.Wv, blk.bv, v_cur);
+
+            // Salva K e V do token atual no cache da camada l
+            auto k_slot = kv.K[l].linha(pos);
+            auto v_slot = kv.V[l].linha(pos);
+            std::copy(k_cur.begin(), k_cur.end(), k_slot.begin());
+            std::copy(v_cur.begin(), v_cur.end(), v_slot.begin());
+
+            std::fill(ctx.begin(), ctx.end(), 0.0f);
+            for (std::size_t h = 0; h < Nh; ++h) {
+                const std::size_t oh = h * dh;
+                float maior = -1e30f;
+                for (std::size_t k = 0; k <= pos; ++k) {
+                    const auto k_row = kv.K[l].linha(k);
+                    float dot = 0.0f;
+                    for (std::size_t d = 0; d < dh; ++d) {
+                        dot += q[oh + d] * k_row[oh + d];
+                    }
+                    scores[k] = dot * escala_attn;
+                    if (scores[k] > maior) maior = scores[k];
+                }
+                float soma = 0.0f;
+                for (std::size_t k = 0; k <= pos; ++k) {
+                    scores[k] = std::exp(scores[k] - maior);
+                    soma += scores[k];
+                }
+                const float inv_soma = 1.0f / soma;
+                for (std::size_t k = 0; k <= pos; ++k) {
+                    const float a = scores[k] * inv_soma;
+                    const auto v_row = kv.V[l].linha(k);
+                    for (std::size_t d = 0; d < dh; ++d) {
+                        ctx[oh + d] += a * v_row[oh + d];
+                    }
+                }
+            }
+
+            lin_1d(ctx, blk.Wo, blk.bo, proj);
+            for (std::size_t d = 0; d < D; ++d) x[d] += proj[d];
+
+            ln_1d(x, blk.ln2_g, blk.ln2_b, ln_buf);
+            lin_1d(ln_buf, blk.Wfc1, blk.bfc1, ff1);
+            for (float& u : ff1) u = gelu_f(u);
+            lin_1d(ff1, blk.Wfc2, blk.bfc2, ff2);
+            for (std::size_t d = 0; d < D; ++d) x[d] += ff2[d];
+        }
+
+        ln_1d(x, pesos_.ln_f_g, pesos_.ln_f_b, ln_buf);
+        if (cfg_.weight_tying) {
+            logits_saida.resize(cfg_.vocab);
+            for (std::size_t v = 0; v < cfg_.vocab; ++v) {
+                const auto wt_v = pesos_.w_tok.linha(v);
+                float soma = pesos_.b_head[v];
+                for (std::size_t d = 0; d < D; ++d) soma += ln_buf[d] * wt_v[d];
+                logits_saida[v] = soma;
+            }
+        } else {
+            lin_1d(ln_buf, pesos_.w_head, pesos_.b_head, logits_saida);
+        }
+    }
+
+    // Gera IDs autoregressivamente usando KV-Cache, Temperatura e Top-K e retorna
+    // tambem a confianca media (media geometrica das probabilidades) e perplexidade.
     ResultadoGeracao gerar_com_confianca(std::vector<int> contexto, std::size_t max_tokens,
                                          float temperatura, std::size_t top_k,
                                          GeradorAleatorio& rng, int id_parada = -1) const {
         if (contexto.empty()) {
             contexto.push_back(id_parada >= 0 ? id_parada : 0);
         }
+        if (contexto.size() > cfg_.contexto_max) {
+            contexto.erase(contexto.begin(),
+                           contexto.begin() +
+                               static_cast<std::ptrdiff_t>(contexto.size() - cfg_.contexto_max));
+        }
 
-        CacheTransformer cache;
+        KVCache kv(cfg_);
+        std::vector<float> logits(cfg_.vocab, 0.0f);
         std::vector<float> probs_base(cfg_.vocab, 0.0f);
         std::vector<float> probs_temp(cfg_.vocab, 0.0f);
         ResultadoGeracao res;
         res.ids.reserve(max_tokens);
         double soma_log_prob = 0.0;
 
-        for (std::size_t passo = 0; passo < max_tokens; ++passo) {
-            if (contexto.size() > cfg_.contexto_max) {
-                contexto.erase(contexto.begin(),
-                               contexto.begin() +
-                                   static_cast<std::ptrdiff_t>(contexto.size() - cfg_.contexto_max));
-            }
+        // Prefill do KV-Cache com o prompt inicial
+        for (std::size_t i = 0; i < contexto.size(); ++i) {
+            forward_token(contexto[i], i, kv, logits);
+        }
+        std::size_t pos = contexto.size();
 
-            forward_sequencia(contexto, cache, false, nullptr);
-            const std::size_t ultimo = contexto.size() - 1;
-            // Probabilidade real (temperatura=1.0) mede a confianca verdadeira do modelo
-            softmax(cache.logits.linha(ultimo), probs_base, 1.0f);
-            softmax(cache.logits.linha(ultimo), probs_temp, temperatura);
+        for (std::size_t passo = 0; passo < max_tokens; ++passo) {
+            softmax(logits, probs_base, 1.0f);
+            softmax(logits, probs_temp, temperatura);
             const int proximo = static_cast<int>(rng.amostrar_top_k(probs_temp, top_k));
 
             if (id_parada >= 0 && proximo == id_parada && !res.ids.empty()) {
                 break;
             }
-            soma_log_prob += std::log(std::max(probs_base[static_cast<std::size_t>(proximo)], 1e-12f));
+            soma_log_prob +=
+                std::log(std::max(probs_base[static_cast<std::size_t>(proximo)], 1e-12f));
             res.ids.push_back(proximo);
             contexto.push_back(proximo);
+
+            if (pos < cfg_.contexto_max) {
+                forward_token(proximo, pos, kv, logits);
+                ++pos;
+            } else {
+                // Janela cheia: desliza mantendo a metade mais recente e refaz prefill
+                const std::size_t manter = std::max<std::size_t>(1, cfg_.contexto_max / 2);
+                contexto.erase(contexto.begin(),
+                               contexto.begin() +
+                                   static_cast<std::ptrdiff_t>(contexto.size() - manter));
+                for (std::size_t i = 0; i < contexto.size(); ++i) {
+                    forward_token(contexto[i], i, kv, logits);
+                }
+                pos = contexto.size();
+            }
         }
 
         if (!res.ids.empty()) {

@@ -236,6 +236,9 @@ def main() -> int:
         Path("dados/conversa_cotidiana.txt"),
         Path("dados/programacao_cpp.txt"),
         Path("dados/machine_learning.txt"),
+        Path("dados/filosofia.txt"),
+        Path("dados/computacao.txt"),
+        Path("dados/musica_rock_metal.txt"),
     ]
     externos_filtrados = []
     for fonte in (PASTA_SAIDA / "oasst1_pt.txt", PASTA_SAIDA / "alpaca_pt.txt"):

@@ -27,6 +27,7 @@
 - [x] Arquivamento das etapas anteriores (`etapa1_bigram`, `etapa2_mlp`, `teste_mlp.cpp`) em `backup/`, deixando apenas o Mini-Transformer atual ativo no `CMakeLists.txt` e `Makefile`
 - [x] Regularização e experiência de chat: **Inverted Dropout** (`--dropout`), salvamento automático do melhor checkpoint de validação (`--melhor-val`) + Early Stopping (`--paciencia`), medidor de confiança + fallback honesto (`/conf`) e corpus calibrado para CPU (`dados/externos/conversas_cpu.txt`, `make treinar-cpu` / `make chat-cpu`)
 - [x] Pasta `changelogs/` criada documentando a evolução completa commit a commit (`f761445` → `9986c34`)
+- [x] **KV-Cache** na geração autoregressiva (`forward_token` validado com equivalência `< 1e-5` vs `forward_sequencia`), escalamento para `D=128, BPE=640, T=80` (~680k params) e 3 novos datasets ricos (`filosofia.txt`, `computacao.txt`, `musica_rock_metal.txt`)
 
 ## 2. Registro de Decisões Arquiteturais (ADRs)
 
