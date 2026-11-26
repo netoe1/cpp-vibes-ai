@@ -13,6 +13,7 @@ cpp-vibes-ai/
 ├── CMakeLists.txt           # Build C++20 + OpenMP + CTest (versão ativa)
 ├── Makefile                 # Atalhos práticos para build, testes, treino e chat
 ├── backup/                  # Versões educativas anteriores (Bigram e MLP)
+├── changelogs/              # Histórico detalhado da evolução do projeto por commit
 ├── dados/
 │   ├── dialogos.txt            # Corpus inicial curto (baseline/testes)
 │   ├── conversa_cotidiana.txt  # Conversas naturais do dia a dia e multi-turno

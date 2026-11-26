@@ -12,6 +12,7 @@ cpp-vibes-ai/
 ├── CMakeLists.txt             # Build C++20 + OpenMP; 1 executável por etapa
 ├── Makefile                   # Atalhos práticos para build, testes e chat de cada etapa
 ├── README.md                  # Porta de entrada e instruções rápidas
+├── changelogs/                # Histórico detalhado commit a commit da evolução do projeto
 ├── dados/                     # Datasets de treinamento em texto puro (UTF-8)
 │   ├── dialogos.txt           # Baseline curto usado na suíte de regressão
 │   ├── conversa_cotidiana.txt # Diálogos cotidianos e multi-turno com acentuação UTF-8
