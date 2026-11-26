@@ -19,6 +19,10 @@
 - [x] Suíte de testes automatizados (`tests/` + `CTest`) cobrindo `src/comum/`, Etapa 1, Etapa 2 e Etapa 3 (`6/6` passando)
 - [x] **Etapa 2 — MLP** (Embeddings, janela de 16 tokens, `tanh`, backpropagation manual, Momentum, checkpoints `.vibes`, gradient check `9.1e-7`, `docs/02_mlp.md`)
 - [x] **Etapa 3 — Mini-Transformer (GPT)** (Causal Multi-Head Self-Attention, Pre-LayerNorm, GELU FFN, residuais, AdamW + Cosine LR + Clipping, checkpoints `.vibes`, Top-K, chat com histórico, gradient check `5.16e-5`, `docs/03_transformer.md`)
+- [x] `Makefile` na raiz com atalhos para build, testes (`CTest`), treino e chat de todas as etapas (documentado no `README.md` e `.spec/`)
+- [x] Expansão de datasets em `dados/` (`conversa_cotidiana.txt`, `programacao_cpp.txt`, `machine_learning.txt` e geração automática de `completo.txt` via `make dados-completo`)
+- [x] Script `scripts/baixar_dados.py` + `make baixar-dados` para baixar e formatar grandes datasets abertos em português (`OpenAssistant/oasst1`, `FreedomIntelligence/alpaca-gpt4-portuguese`, *Dom Casmurro* — Gutenberg #55752) em `dados/externos/`
+- [x] Suíte de treinos no `Makefile` (`suite-treino-rapida`, `suite-treino`, `suite-treino-grande`, `suite-benchmark`)
 
 ## 2. Registro de Decisões Arquiteturais (ADRs)
 

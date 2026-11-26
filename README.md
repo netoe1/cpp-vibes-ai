@@ -20,7 +20,11 @@ Consulte o roteiro completo em [docs/00_roteiro.md](docs/00_roteiro.md).
 cpp-vibes-ai/
 ├── CMakeLists.txt           # Configuração de build (C++20 + OpenMP)
 ├── dados/
-│   └── dialogos.txt         # Corpus inicial de diálogos em português
+│   ├── dialogos.txt            # Corpus inicial curto (baseline/regressão)
+│   ├── conversa_cotidiana.txt  # Conversas naturais do dia a dia e multi-turno (UTF-8)
+│   ├── programacao_cpp.txt     # Diálogos educativos sobre C++20, OpenMP e CMake
+│   ├── machine_learning.txt    # Diálogos sobre ML, Backprop, Attention e LLMs
+│   └── completo.txt            # Todos os datasets combinados (via make dados-completo)
 ├── docs/
 │   ├── 00_roteiro.md        # Visão geral da trilha educativa
 │   └── 01_bigram.md         # Teoria e matemática da Etapa 1
@@ -37,28 +41,55 @@ cpp-vibes-ai/
 
 ### Requisitos
 - Compilador C++20 (`g++` ou `clang++`) com suporte a OpenMP
-- `cmake` (>= 3.20)
+- `cmake` (>= 3.20) e `make`
 
-### Build (modo Release recomendado para treino rápido)
+### Atalhos com `Makefile` (Recomendado)
+
+O repositório inclui um [Makefile](Makefile) com atalhos prontos para compilar, testar e conversar com cada etapa:
+
+```bash
+make help         # Lista todos os comandos disponíveis
+make build        # Compila todas as etapas e testes (Release + OpenMP)
+make test         # Roda toda a suíte de testes automatizados e regressão (CTest)
+
+# Treinar e abrir chat direto em cada etapa
+make etapa1       # Etapa 1: Bigram
+make etapa2       # Etapa 2: MLP
+make etapa3       # Etapa 3: Mini-Transformer (GPT)
+
+# Conversar rapidamente usando checkpoint salvo (treina automaticamente se ainda não existir)
+make chat-mlp          # Chat com a MLP usando build/modelo_mlp.vibes
+make chat-gpt          # Chat com o GPT usando build/modelo_gpt.vibes
+
+# Juntar todos os datasets em dados/completo.txt e treinar/conversar nele
+make dados-completo
+make treinar-gpt-completo PASSOS=1000
+make chat-gpt-completo
+
+# Ou escolher qualquer dataset específico pela variável DADOS
+make etapa3 DADOS=dados/conversa_cotidiana.txt PASSOS=600
+make etapa3 DADOS=dados/programacao_cpp.txt PASSOS=600
+make etapa3 DADOS=dados/machine_learning.txt PASSOS=600
+
+# Baixar GRANDES datasets abertos em português (OASST1, Alpaca GPT-4 PT)
+make baixar-dados
+make treinar-gpt-grande PASSOS=1500
+make chat-gpt-grande
+
+# Suíte de treinos (treinar e comparar todas as etapas em sequência)
+make suite-treino-rapida   # Smoke de treino nas 3 etapas em dados/completo.txt
+make suite-treino          # Treina as 3 etapas em dados/completo.txt e salva checkpoints
+make suite-treino-grande   # Treina no corpus grande (~4.5 MB em dados/externos/)
+make suite-benchmark       # Compara tempo e perda das 3 arquiteturas lado a lado
+
+make clean        # Remove a pasta build/
+```
+
+### Build e execução manual via CMake (Opcional)
 
 ```bash
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j
-```
-
-### Executar as Etapas
-
-```bash
-# Etapa 1: Bigram
-./build/etapa1_bigram dados/dialogos.txt
-
-# Etapa 2: MLP (com gradient check opcional e salvamento de pesos)
-./build/etapa2_mlp dados/dialogos.txt --verificar-gradiente --salvar modelo_mlp.vibes
-
-# Etapa 3: Mini-Transformer (GPT) com chat com histórico e checkpoints
-./build/etapa3_transformer dados/dialogos.txt --verificar-gradiente --salvar modelo_gpt.vibes
-
-# Rodar toda a suíte de testes automatizados e de regressão
 ctest --test-dir build --output-on-failure
 ```
 

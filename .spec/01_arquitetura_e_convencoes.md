@@ -10,9 +10,14 @@ cpp-vibes-ai/
 │   ├── 02_plano_de_etapas.md
 │   └── 03_status_e_decisoes.md
 ├── CMakeLists.txt             # Build C++20 + OpenMP; 1 executável por etapa
+├── Makefile                   # Atalhos práticos para build, testes e chat de cada etapa
 ├── README.md                  # Porta de entrada e instruções rápidas
 ├── dados/                     # Datasets de treinamento em texto puro (UTF-8)
-│   └── dialogos.txt
+│   ├── dialogos.txt           # Baseline curto usado na suíte de regressão
+│   ├── conversa_cotidiana.txt # Diálogos cotidianos e multi-turno com acentuação UTF-8
+│   ├── programacao_cpp.txt    # Diálogos técnicos sobre C++20, OpenMP, CMake e algoritmos
+│   ├── machine_learning.txt   # Diálogos técnicos sobre IA, redes neurais e Transformers
+│   └── completo.txt           # Corpus combinado gerado via make dados-completo
 ├── docs/                      # Material educativo (teoria + matemática de cada etapa)
 │   ├── 00_roteiro.md
 │   ├── 01_bigram.md
@@ -62,16 +67,26 @@ IA: <próxima resposta>
 
 Esse formato é simples o suficiente para modelos a nível de caractere aprenderem a estrutura de turno (`Usuario:` -> `IA:`) e pararem ao encontrar `\n`.
 
-## 4. Comandos Padrão de Build e Execução
+## 4. Comandos Padrão de Build, Testes e Execução
+
+Via `Makefile` (recomendado no dia a dia):
 
 ```bash
-# Configurar e compilar em Release (recomendado para treino rápido)
+make help         # Listar alvos disponíveis
+make build        # Configurar e compilar em Release (OpenMP)
+make test         # Rodar toda a suíte de testes e regressão (CTest)
+make etapa1       # Rodar chat da Etapa 1 (Bigram)
+make etapa2       # Rodar chat da Etapa 2 (MLP)
+make etapa3       # Rodar chat da Etapa 3 (Mini-Transformer)
+make chat-gpt     # Abrir chat do Mini-Transformer carregando checkpoint salvo
+make clean        # Limpar build/
+```
+
+Ou diretamente via `CMake`:
+
+```bash
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j
-
-# Rodar uma etapa específica (modo chat)
-./build/<nome_da_etapa> dados/dialogos.txt
-
-# Rodar em modo validação rápida (sem bloquear no stdin)
+ctest --test-dir build --output-on-failure
 ./build/<nome_da_etapa> dados/dialogos.txt --sem-chat
 ```
