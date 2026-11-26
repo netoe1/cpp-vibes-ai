@@ -49,13 +49,23 @@ std::vector<vibes::SequenciaTreino> amostrar_batch(const std::vector<int>& token
     return batch;
 }
 
-// Constroi janelas deterministas (nao sobrepostas) para avaliacao consistente.
+// Constroi ate `max_janelas` janelas deterministas espacadas ao longo do split
+// para manter a avaliacao rapida mesmo em datasets de varios megabytes.
 std::vector<vibes::SequenciaTreino> construir_janelas_avaliacao(const std::vector<int>& tokens,
-                                                                std::size_t comprimento_seq) {
+                                                                std::size_t comprimento_seq,
+                                                                std::size_t max_janelas = 32) {
     std::vector<vibes::SequenciaTreino> seqs;
     if (tokens.size() < 2) return seqs;
     const std::size_t T = std::min(comprimento_seq, tokens.size() - 1);
-    for (std::size_t ini = 0; ini + T < tokens.size(); ini += T) {
+    const std::size_t total_possiveis = (tokens.size() - 1) / T;
+    if (total_possiveis == 0) return seqs;
+
+    const std::size_t passo_janelas =
+        std::max<std::size_t>(1, total_possiveis / std::max<std::size_t>(1, max_janelas));
+
+    for (std::size_t j = 0; j < total_possiveis && seqs.size() < max_janelas; j += passo_janelas) {
+        const std::size_t ini = j * T;
+        if (ini + T >= tokens.size()) break;
         vibes::SequenciaTreino seq;
         seq.entrada.assign(tokens.begin() + static_cast<std::ptrdiff_t>(ini),
                            tokens.begin() + static_cast<std::ptrdiff_t>(ini + T));

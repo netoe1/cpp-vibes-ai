@@ -1,0 +1,107 @@
+Usuario: O que é Machine Learning?
+IA: Machine Learning é a área da computação onde o modelo aprende padrões estatísticos diretamente dos dados, ajustando parâmetros para minimizar erros.
+
+Usuario: Qual é a tarefa fundamental de um Modelo de Linguagem?
+IA: Prever a distribuição de probabilidade do próximo token dada a sequência de tokens anteriores.
+
+Usuario: O que é um token?
+IA: Um token é a unidade básica de texto que o modelo processa — pode ser um caractere UTF-8, uma subpalavra ou uma palavra inteira.
+
+Usuario: O que é um vocabulário em NLP?
+IA: É o conjunto de todos os tokens únicos conhecidos pelo modelo, mapeados para índices inteiros de 0 até V-1.
+
+Usuario: Como funciona o modelo Bigram?
+IA: O Bigram prevê o próximo token olhando apenas o último token atual. É simples e rápido, mas não tem memória de contexto.
+
+Usuario: O que são logits?
+IA: Logits são as pontuações numéricas brutas produzidas pela última camada da rede antes de serem convertidas em probabilidades pelo Softmax.
+
+Usuario: O que faz a função Softmax?
+IA: O Softmax transforma um vetor de logits reais em probabilidades positivas que somam 1, destacando os maiores valores via exponencial.
+
+Usuario: Por que subtraímos o maior logit antes da exponencial no Softmax?
+IA: Subtrair o máximo evita overflow de exp() mantendo o resultado matemático exatamente igual, garantindo estabilidade numérica.
+
+Usuario: O que é Entropia Cruzada (Cross-Entropy Loss)?
+IA: É a função de perda que mede o quão distante a probabilidade prevista está do token correto, calculada como -log(probabilidade_do_alvo).
+
+Usuario: Qual é a perda esperada de um modelo que chuta aleatoriamente?
+IA: Para um vocabulário de tamanho V, a perda de chutes uniformes é aproximadamente ln(V). Por exemplo, para V=37, ln(37) é cerca de 3.61.
+
+Usuario: O que é Gradiente Descendente?
+IA: É o algoritmo de otimização que calcula a derivada da perda em relação a cada peso e dá um pequeno passo na direção oposta para reduzir o erro.
+
+Usuario: O que é a taxa de aprendizado (learning rate)?
+IA: É o tamanho do passo dado ao atualizar os pesos. Alta demais faz o treino divergir; baixa demais deixa a convergência muito lenta.
+
+Usuario: O que são Embeddings?
+IA: Embeddings são vetores densos aprendíveis que representam cada token em um espaço contínuo, capturando semelhanças entre símbolos e palavras.
+
+Usuario: O que é uma MLP (Multi-Layer Perceptron)?
+IA: Uma MLP é uma rede neural com camadas densas e funções de ativação não-lineares, capaz de combinar múltiplos tokens de uma janela de contexto.
+
+Usuario: Por que precisamos de funções de ativação não-lineares como tanh ou GELU?
+IA: Sem não-linearidade, empilhar várias camadas lineares equivaleria matematicamente a uma única multiplicação de matrizes.
+
+Usuario: O que é Backpropagation?
+IA: Backpropagation é a aplicação sistemática da regra da cadeia do cálculo para propagar o erro da saída até cada peso da rede neural.
+
+Usuario: O que é Gradient Checking?
+IA: É um teste que compara o gradiente analítico do backpropagation com diferenças finitas numéricas para provar que as derivadas estão corretas.
+
+Usuario: O que é um Mini-Batch?
+IA: Em vez de usar o dataset inteiro ou apenas um exemplo por atualização, o mini-batch calcula o gradiente médio sobre um pequeno lote de exemplos.
+
+Usuario: O que é Momentum na otimização?
+IA: Momentum acumula uma média móvel dos gradientes anteriores, dando inércia à descida e acelerando a convergência em vales estreitos.
+
+Usuario: O que é overfitting?
+IA: Overfitting acontece quando o modelo decora os exemplos de treino, atingindo perda de treino muito baixa, mas piora na perda de validação.
+
+Usuario: Por que separar os dados em treino e validação?
+IA: O conjunto de validação nunca é usado para atualizar pesos; ele mede se o modelo realmente aprendeu padrões gerais ou apenas decorou o treino.
+
+Usuario: Como reduzir overfitting em modelos de linguagem?
+IA: Aumentando a quantidade e variedade de dados de treino, usando regularização como weight decay ou reduzindo o número de parâmetros.
+
+Usuario: O que é Self-Attention?
+IA: Self-Attention é o mecanismo que permite a cada token olhar dinamicamente para outros tokens da sequência e combinar suas informações por relevância.
+
+Usuario: O que são Query, Key e Value (Q, K, V) na atenção?
+IA: Query representa o que o token procura, Key indica o que cada token oferece e Value contém a informação que será combinada pelos pesos de atenção.
+
+Usuario: Por que dividimos o produto Q·K por raiz de d_h na atenção?
+IA: Dividir por sqrt(d_h) evita que o produto escalar cresça demais em magnitude, impedindo que o Softmax sature e mate os gradientes.
+
+Usuario: O que é máscara causal na atenção?
+IA: A máscara causal zera a atenção para posições futuras (k > t), garantindo que o modelo só use o passado ao prever o próximo token.
+
+Usuario: O que é Multi-Head Attention?
+IA: Em vez de uma única atenção, dividimos a dimensão do modelo em várias cabeças paralelas para capturar diferentes relações linguísticas simultaneamente.
+
+Usuario: Para que servem as conexões residuais no Transformer?
+IA: Somar a entrada à saída da subcamada (x + F(x)) cria um caminho direto para o gradiente fluir sem desaparecer em redes profundas.
+
+Usuario: O que faz a LayerNorm?
+IA: LayerNorm normaliza as ativações de cada token para média zero e variância um, estabilizando o treinamento de redes profundas.
+
+Usuario: O que é o otimizador AdamW?
+IA: AdamW adapta a taxa de aprendizado de cada parâmetro usando médias do gradiente e do quadrado do gradiente, com weight decay desacoplado.
+
+Usuario: Para que serve o Gradient Clipping?
+IA: Ele limita a norma global do vetor de gradientes (por exemplo, até 1.0) para impedir explosões súbitas durante o treino do Transformer.
+
+Usuario: O que é Cosine Learning Rate Schedule?
+IA: É um agendamento que sobe a taxa de aprendizado no início (warmup) e depois a reduz suavemente seguindo uma curva de cosseno.
+
+Usuario: O que é temperatura na geração de texto?
+IA: Temperatura divide os logits antes do Softmax: valores baixos deixam a resposta mais previsível e conservadora; valores altos aumentam a variedade.
+
+Usuario: O que é amostragem Top-K?
+IA: Top-K restringe o sorteio apenas aos K tokens mais prováveis, eliminando opções muito improváveis sem tornar o texto totalmente repetitivo.
+
+Usuario: O que é geração autoregressiva?
+IA: É gerar um token por vez, adicionando cada token gerado ao final do contexto para prever o próximo, até atingir o limite ou quebra de linha.
+
+Usuario: Por que um Transformer generaliza melhor que uma MLP?
+IA: Porque os pesos de atenção funcionam de forma flexível em qualquer posição da sequência, enquanto a MLP prende pesos fixos a cada posição da janela.

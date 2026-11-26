@@ -1,0 +1,101 @@
+Usuario: Por que usar C++ para criar uma IA do zero?
+IA: C++ dá controle direto sobre memória, layout de dados em cache e desempenho na CPU, revelando exatamente o que acontece por baixo dos panos.
+
+Usuario: O que é C++20?
+IA: C++20 é uma versão moderna da linguagem C++ que trouxe recursos como std::span, concepts, ranges e melhorias na biblioteca padrão.
+
+Usuario: Para que serve std::vector em C++?
+IA: std::vector é um array dinâmico contíguo em memória. Ele é ideal para armazenar matrizes e tensores com ótimo aproveitamento do cache da CPU.
+
+Usuario: Por que guardar uma matriz 2D em um único std::vector?
+IA: Porque um vetor contíguo evita saltos de ponteiro na memória, melhora a localidade de cache e acelera muito os laços numéricos.
+
+Usuario: O que é std::span?
+IA: std::span é uma visão leve e não-proprietária sobre uma fatia contígua de memória, permitindo passar linhas de uma matriz sem copiar dados.
+
+Usuario: Qual a diferença entre ponteiro e referência em C++?
+IA: Uma referência é um apelido que não pode ser nulo nem reatribuído, enquanto um ponteiro guarda um endereço de memória e pode ser nulo ou mudar de alvo.
+
+Usuario: O que é RAII em C++?
+IA: RAII significa Resource Acquisition Is Initialization: recursos como memória e arquivos são adquiridos no construtor e liberados automaticamente no destrutor.
+
+Usuario: O que significa const em um método de classe?
+IA: Marcar um método como const garante que ele não modifica os atributos do objeto, ajudando o compilador a evitar bugs acidentais.
+
+Usuario: Para que serve constexpr?
+IA: constexpr indica que um valor ou função pode ser avaliado em tempo de compilação, gerando código mais rápido e seguro.
+
+Usuario: O que é OpenMP?
+IA: OpenMP é uma API baseada em diretivas como #pragma omp parallel for que divide laços entre vários núcleos da CPU de forma simples.
+
+Usuario: O que é uma race condition em programação paralela?
+IA: Race condition ocorre quando duas ou mais threads modificam a mesma posição de memória ao mesmo tempo sem sincronização, gerando resultados imprevisíveis.
+
+Usuario: Como evitar race conditions ao somar gradientes no OpenMP?
+IA: Cada thread acumula seus gradientes em uma estrutura local própria e, ao final do laço, soma tudo no acumulador global dentro de uma seção crítica.
+
+Usuario: O que faz a cláusula reduction no OpenMP?
+IA: A cláusula reduction cria uma cópia privada de uma variável escalar por thread e combina todos os resultados ao final com segurança.
+
+Usuario: Para que serve o CMake?
+IA: CMake é um gerador de sistemas de build multiplataforma que organiza executáveis, bibliotecas, flags de compilação e testes com CTest.
+
+Usuario: Para que serve o Makefile?
+IA: O Makefile oferece atalhos curtos no terminal, como make build, make test e make chat-gpt, facilitando a rotina de desenvolvimento.
+
+Usuario: Qual a diferença entre build Debug e Release?
+IA: Debug inclui símbolos para depuração e desativa otimizações; Release ativa otimizações como -O3, deixando o treinamento dezenas de vezes mais rápido.
+
+Usuario: Por que compilar com -Wall -Wextra -Wpedantic?
+IA: Essas flags ativam avisos rigorosos do compilador que detectam variáveis não usadas, conversões perigosas e bugs sutis antes mesmo de rodar o programa.
+
+Usuario: O que é CTest?
+IA: CTest é o executor de testes integrado ao CMake, usado para rodar automaticamente testes unitários, gradient checks e testes de regressão.
+
+Usuario: Por que testes de regressão são importantes?
+IA: Testes de regressão garantem que uma mudança nova não quebrou funcionalidades ou etapas anteriores que já estavam funcionando.
+
+Usuario: O que é complexidade Big-O?
+IA: Notação Big-O descreve como o tempo ou a memória de um algoritmo cresce conforme o tamanho da entrada aumenta, como O(N) ou O(N^2).
+
+Usuario: Qual a complexidade da multiplicação de matrizes padrão?
+IA: Multiplicar duas matrizes N por N na forma clássica tem complexidade O(N^3) em tempo.
+
+Usuario: Por que a ordem dos laços i-k-j é mais rápida na multiplicação de matrizes?
+IA: Porque acessar os elementos de B e C sequencialmente na linha respeita o layout row-major e maximiza acertos na cache L1 da CPU.
+
+Usuario: O que é float32 versus double?
+IA: float usa 32 bits com cerca de 7 dígitos de precisão, economizando memória no treino; double usa 64 bits com cerca de 15 dígitos, ideal para gradient checking.
+
+Usuario: O que é overflow numérico?
+IA: Overflow acontece quando um cálculo produz um número maior do que o tipo suporta, resultando em infinito (inf) ou NaN.
+
+Usuario: Como evitar NaN no cálculo do logaritmo?
+IA: Garantindo um limite mínimo positivo antes de chamar std::log, como std::max(prob, 1e-12f), para nunca calcular log(0).
+
+Usuario: O que é UTF-8?
+IA: UTF-8 é uma codificação de texto de tamanho variável onde caracteres ASCII usam 1 byte e acentos do português usam 2 bytes.
+
+Usuario: Por que tratar UTF-8 corretamente no tokenizador?
+IA: Para que letras acentuadas como ç, á e ã sejam tratadas como um único token inteiro em vez de bytes quebrados.
+
+Usuario: O que é serialização binária?
+IA: É o processo de gravar estruturas da memória, como matrizes de pesos, diretamente em bytes no disco para recarregar o modelo depois sem retreinar.
+
+Usuario: O que é um cabeçalho mágico em arquivos binários?
+IA: É uma sequência curta de bytes no início do arquivo, como VBGPT01, usada para validar o formato e a versão antes de ler os dados.
+
+Usuario: Como debugar um bug silencioso em C++?
+IA: Simule o fluxo e as dimensões antes de codificar, use asserções, escreva testes unitários pequenos e isole o menor exemplo que reproduz o problema.
+
+Usuario: O que é Git?
+IA: Git é um sistema de controle de versão distribuído que registra o histórico de alterações do código e facilita experimentar sem medo.
+
+Usuario: Para que serve o arquivo .gitignore?
+IA: O .gitignore lista arquivos e pastas temporárias, como build/, que não devem ser enviados ao histórico do repositório Git.
+
+Usuario: O que é um header-only em C++?
+IA: É uma biblioteca implementada diretamente em arquivos .hpp com funções inline ou templates, simplificando a reutilização entre vários executáveis.
+
+Usuario: Por que usar semente fixa no gerador aleatório?
+IA: Fixar a semente (seed) garante reprodutibilidade: rodar o mesmo treino duas vezes produz exatamente os mesmos pesos e métricas.
